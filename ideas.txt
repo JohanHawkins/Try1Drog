@@ -1,0 +1,57 @@
+Proyecto: Drogs+ - Sistema de Gestión para Droguería
+
+Tipo: Aplicación de escritorio en Python (tkinter)
+Moneda: Pesos Colombianos (COP)
+
+ARCHIVOS DEL PROYECTO:
+
+1. VenIni.py (Punto de entrada)
+   - Ventana de inicio de sesión
+   - Campo para ingresar serial de acceso
+   - Imagen de cruz azul (logo)
+
+2. VenMenu.py (Menú principal)
+   - Navegación entre módulos
+   - Botones: Inventario, Ventas, Registros
+
+3. Inventario/Inventario.py
+   - Formulario para agregar productos
+   - Campos: Nombre, Identificador (auto-generado), Cantidad, Precio, Fechas
+   - Categoría por vencimiento: Verde (>12 meses), Amarillo (6-12 meses), Rojo (<6 meses)
+   - Guarda en inventario_productos.xlsx
+
+4. Inventario/Editar_Producto.py
+   - Búsqueda de productos
+   - Edición inline con doble clic
+   - Vista de resultados con colores por categoría
+
+5. Ventas/Ventas.py
+   - Sistema de ventas con autocompletado
+   - Selección de producto con sugerencias
+   - Cálculo automático de total
+   - Descuento de stock al comprar
+   - Registro de cada venta en registros_compra.xlsx
+
+6. Registro.py
+   - Visualización de historial de ventas
+   - Filtros: Producto, Fecha, Hora
+   - Paginación (20 registros por página)
+   - Exportar a Excel, TXT o PDF
+   - Eliminación de registros
+
+ARCHIVOS DE DATOS:
+- Inventario/inventario_productos.xlsx (stock de productos)
+- Ventas/registros_compra.xlsx (historial de ventas)
+
+RECURSOS:
+- images/cruz_azul.ico (icono de ventana)
+- images/cruz_azul.png (logo)
+
+DEPENDENCIAS:
+- tkinter (interfaz gráfica)
+- pandas (manejo de datos)
+- openpyxl (formato Excel)
+- Pillow/PIL (imágenes)
+- tkcalendar (selector de fechas)
+- fpdf (generación de PDF)
+- python-dateutil (cálculo de fechas)
