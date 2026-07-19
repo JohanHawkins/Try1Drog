@@ -55,3 +55,45 @@ DEPENDENCIAS:
 - tkcalendar (selector de fechas)
 - fpdf (generación de PDF)
 - python-dateutil (cálculo de fechas)
+
+=================================================================
+CONCEPTO DEL PROYECTO - Visión a Futuro
+=================================================================
+
+Drogs+ es una aplicación integral diseñada específicamente para pequeñas farmacias,
+con el objetivo de modernizar y profesionalizar la gestión diaria del negocio.
+
+MÓDULOS PRINCIPALES:
+
+1. PUNTO DE VENTA RÁPIDO
+   - Ventas fraccionadas (por pastillas, unidades, cajas)
+   - Búsqueda instantánea de productos
+   - Métodos de pago integrados
+   - Facturación electrónica
+
+2. CONTROL DE INVENTARIO INTELIGENTE
+   - Alertas automáticas de caducidad (30, 60, 90 días)
+   - Niveles mínimos de stock con notificación de reabastecimiento
+   - Sugerencia automática de medicamentos genéricos equivalentes
+   - Código de barras y lote por producto
+
+3. CUMPLIMIENTO REGULATORIO
+   - Registro de recetas para medicamentos controlados
+   - Traza completa de compraventa de sustancias reguladas
+   - Reportes listos para inspecciones sanitarias
+
+4. FIDELIZACIÓN DE CLIENTES
+   - Base de datos de pacientes
+   - Recordatorios automáticos de recompra para pacientes crónicos
+   - Historial de compras por cliente
+
+5. REPORTES Y ANALÍTICA
+   - Rentabilidad por producto, categoría y período
+   - Productos más vendidos y menos rotados
+   - Dashboard de toma de decisiones
+   - Reportes exportables (PDF, Excel)
+
+VISIÓN:
+Interfaz sumamente intuitiva que no requiera capacitación compleja,
+permitiendo al personal de farmacia enfocarse en lo que importa:
+atender bien al paciente.
