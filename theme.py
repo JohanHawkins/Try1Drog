@@ -196,13 +196,17 @@ def crear_boton(parent, texto, comando, estilo="Primario", **kwargs):
 
 def crear_entry(parent, **kwargs):
     paleta = get_paleta()
-    entry = tk.Entry(parent, font=("Segoe UI", 10),
-                      bg=paleta["bg_input"], fg=paleta["texto_principal"],
-                      insertbackground=paleta["texto_principal"],
-                      bd=1, relief="solid", highlightthickness=1,
-                      highlightbackground=paleta["borde"],
-                      highlightcolor=paleta["borde_foco"], **kwargs)
-    return entry
+    defaults = {
+        "font": ("Segoe UI", 10),
+        "bg": paleta["bg_input"],
+        "fg": paleta["texto_principal"],
+        "insertbackground": paleta["texto_principal"],
+        "bd": 1, "relief": "solid", "highlightthickness": 1,
+        "highlightbackground": paleta["borde"],
+        "highlightcolor": paleta["borde_foco"],
+    }
+    defaults.update(kwargs)
+    return tk.Entry(parent, **defaults)
 
 def crear_label(parent, texto, estilo="normal", **kwargs):
     paleta = get_paleta()
@@ -233,5 +237,16 @@ def crear_alerta(parent, tipo, texto, paleta=None):
     tk.Label(frame, text=f"  {texto}", font=("Segoe UI", 10, "bold"),
              fg=color_texto, bg=color_fondo, anchor="w").pack(fill="x", padx=10, pady=8)
     return frame
+
+def crear_treeview(parent, columns, paleta=None):
+    if paleta is None:
+        paleta = get_paleta()
+    tree = ttk.Treeview(parent, columns=columns, show="headings", style="Treeview")
+    for col in columns:
+        tree.heading(col, text=col)
+        tree.column(col, width=120)
+    tree.tag_configure("evenrow", background=paleta["bg_tabla_fila_par"])
+    tree.tag_configure("oddrow", background=paleta["bg_tabla_fila_impar"])
+    return tree
 
 cargar_config()
