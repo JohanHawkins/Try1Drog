@@ -4,15 +4,17 @@ import os
 import Inventario.Inventario as Inventario
 import Ventas.Ventas as Ventas
 import Registro
+import Clientes.Clientes as Clientes
+import Reportes.Reportes as Reportes
 
 def crear_ventana_menu():
     ventana_menu = tk.Tk()
     ventana_menu.title("Menú")
-    ventana_menu.geometry("300x200")
+    ventana_menu.geometry("300x300")
     ventana_menu.resizable(width=False, height=False)
 
     x = (ventana_menu.winfo_screenwidth() // 2) - (300 // 2)
-    y = (ventana_menu.winfo_screenheight() // 2) - (200 // 2)
+    y = (ventana_menu.winfo_screenheight() // 2) - (300 // 2)
     ventana_menu.geometry('+{}+{}'.format(x, y))
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -32,6 +34,14 @@ def abrir_registro(ventana):
     ventana.destroy()
     Registro.mostrar_ventana_registro()
 
+def abrir_clientes(ventana):
+    ventana.destroy()
+    Clientes.mostrar_ventana_clientes()
+
+def abrir_reportes(ventana):
+    ventana.destroy()
+    Reportes.mostrar_ventana_reportes()
+
 def mostrar_ventana_menu():
     ventana_menu = crear_ventana_menu()
 
@@ -50,8 +60,14 @@ def mostrar_ventana_menu():
     boton_registros = tk.Button(ventana_menu, text="Registros", font=("Helvetica", 12), command=lambda: abrir_registro(ventana_menu))
     boton_registros.pack(pady=5, padx=20)
 
+    boton_clientes = tk.Button(ventana_menu, text="Clientes", font=("Helvetica", 12), command=lambda: abrir_clientes(ventana_menu))
+    boton_clientes.pack(pady=5, padx=20)
+
+    boton_reportes = tk.Button(ventana_menu, text="Reportes", font=("Helvetica", 12), command=lambda: abrir_reportes(ventana_menu))
+    boton_reportes.pack(pady=5, padx=20)
+
     x = (ventana_menu.winfo_screenwidth() // 2) - (300 // 2)
-    y = (ventana_menu.winfo_screenheight() // 2) - (200 // 2)
+    y = (ventana_menu.winfo_screenheight() // 2) - (300 // 2)
     ventana_menu.geometry('+{}+{}'.format(x, y))
 
     ventana_menu.mainloop()

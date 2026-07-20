@@ -19,9 +19,12 @@ def solo_numeros(event):
 def cargar_productos():
     try:
         df = pd.read_excel("Inventario/inventario_productos.xlsx")
-        return df[["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria", "Fecha Vencimiento"]].dropna()
+        columnas = ["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria", "Fecha Vencimiento"]
+        if "Unidad" in df.columns:
+            columnas.append("Unidad")
+        return df[columnas].dropna(subset=["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)"])
     except Exception as e:
-        return pd.DataFrame(columns=["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria", "Fecha Vencimiento"])
+        return pd.DataFrame(columns=["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria", "Fecha Vencimiento", "Unidad"])
 
 def actualizar_sugerencias(event):
     global indices_sugerencias
@@ -68,12 +71,18 @@ def seleccionar_sugerencia(event):
 def actualizar_stock_y_precio(nombre_producto):
     cantidad = lista_productos.loc[lista_productos["Nombre Producto"] == nombre_producto, "Cantidad Producto"]
     precio = lista_productos.loc[lista_productos["Nombre Producto"] == nombre_producto, "Precio Producto (COP)"]
+    unidad = lista_productos.loc[lista_productos["Nombre Producto"] == nombre_producto, "Unidad"] if "Unidad" in lista_productos.columns else None
     
     if not cantidad.empty:
         entry_stock.config(state="normal")
         entry_stock.delete(0, tk.END)
         entry_stock.insert(0, int(cantidad.iloc[0]))
         entry_stock.config(state="readonly")
+    
+    if unidad is not None and not unidad.empty:
+        label_unidad_val.config(text=str(unidad.iloc[0]))
+    else:
+        label_unidad_val.config(text="Unidad")
     
     if not precio.empty:
         try:
@@ -204,7 +213,7 @@ def realizar_compra(ventana_confirmacion):
         cerrar_ventana_confirmacion()
 
 def mostrar_ventana_ventas():
-    global entry_nombre, entry_stock, entry_precio, entry_cantidad, label_total, listbox_sugerencias, lista_productos
+    global entry_nombre, entry_stock, entry_precio, entry_cantidad, label_total, listbox_sugerencias, lista_productos, label_unidad_val
 
     lista_productos = cargar_productos()
 
@@ -244,10 +253,15 @@ def mostrar_ventana_ventas():
     entry_precio = tk.Entry(frame, state="readonly", width=20)
     entry_precio.grid(row=2, column=1, padx=(10, 0), pady=(0, 8), sticky="w")
 
+    label_unidad = tk.Label(frame, text="Unidad de venta:")
+    label_unidad.grid(row=3, column=0, sticky="e", pady=(0, 8))
+    label_unidad_val = tk.Label(frame, text="-", width=20, anchor="w")
+    label_unidad_val.grid(row=3, column=1, padx=(10, 0), pady=(0, 8), sticky="w")
+
     label_cantidad = tk.Label(frame, text="Cantidad a comprar:")
-    label_cantidad.grid(row=3, column=0, sticky="e", pady=(0, 8))
+    label_cantidad.grid(row=4, column=0, sticky="e", pady=(0, 8))
     entry_cantidad = tk.Entry(frame, width=20)
-    entry_cantidad.grid(row=3, column=1, padx=(10, 0), pady=(0, 8), sticky="w")
+    entry_cantidad.grid(row=4, column=1, padx=(10, 0), pady=(0, 8), sticky="w")
     entry_cantidad.bind("<KeyRelease>", calcular_total)
     entry_cantidad.bind("<KeyPress>", solo_numeros)
 

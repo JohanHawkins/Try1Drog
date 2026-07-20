@@ -12,23 +12,27 @@ ARCHIVOS DEL PROYECTO:
 
 2. VenMenu.py (Menú principal)
    - Navegación entre módulos
-   - Botones: Inventario, Ventas, Registros
+   - Botones: Inventario, Ventas, Registros, Clientes, Reportes
 
 3. Inventario/Inventario.py
    - Formulario para agregar productos
-   - Campos: Nombre, Identificador (auto-generado), Cantidad, Precio, Fechas
+   - Campos: Nombre, Identificador (auto-generado), Cantidad, Stock Mínimo, Precio, Fechas, Unidad
    - Categoría por vencimiento: Verde (>12 meses), Amarillo (6-12 meses), Rojo (<6 meses)
+   - Alertas automáticas de vencimiento (30, 60, 90 días)
+   - Alertas de stock mínimo al abrir inventario
    - Guarda en inventario_productos.xlsx
 
 4. Inventario/Editar_Producto.py
    - Búsqueda de productos
    - Edición inline con doble clic
+   - Eliminación de productos seleccionados
    - Vista de resultados con colores por categoría
 
 5. Ventas/Ventas.py
    - Sistema de ventas con autocompletado
    - Selección de producto con sugerencias
    - Cálculo automático de total
+   - Unidad de venta visible (Unidad, Caja, Blister, etc.)
    - Descuento de stock al comprar
    - Registro de cada venta en registros_compra.xlsx
 
@@ -39,9 +43,23 @@ ARCHIVOS DEL PROYECTO:
    - Exportar a Excel, TXT o PDF
    - Eliminación de registros
 
+7. Clientes/Clientes.py
+   - Gestión de clientes (CRUD)
+   - Campos: Nombre, Cédula, Teléfono, Dirección, Email
+   - Guarda en Clientes/clientes.xlsx
+
+8. Reportes/Reportes.py
+   - Dashboard con resumen de ventas
+   - Total de ventas, productos en inventario, ingresos totales
+   - Ranking de productos más vendidos
+
+9. utils.py
+   - Función centrar_ventana() reutilizable
+
 ARCHIVOS DE DATOS:
 - Inventario/inventario_productos.xlsx (stock de productos)
 - Ventas/registros_compra.xlsx (historial de ventas)
+- Clientes/clientes.xlsx (base de datos de clientes)
 
 RECURSOS:
 - images/cruz_azul.ico (icono de ventana)
@@ -182,44 +200,52 @@ CÓDIGO NO UTIL (retirable sin afectar funcionamiento):
 
 FALTANTES SEGÚN IDEAS.TXT (líneas 68-99):
 
-1. Ventas fraccionadas (pastillas, unidades, cajas) - No implementado.
+1. Ventas fraccionadas (pastillas, unidades, cajas) - IMPLEMENTADO (campo Unidad).
 2. Métodos de pago integrados - No implementado.
 3. Facturación electrónica - No implementado.
-4. Alertas automáticas de caducidad (30, 60, 90 días) - No implementado.
-5. Niveles mínimos de stock con notificación - No implementado.
+4. Alertas automáticas de caducidad (30, 60, 90 días) - IMPLEMENTADO.
+5. Niveles mínimos de stock con notificación - IMPLEMENTADO.
 6. Código de barras y lote por producto - No implementado.
 7. Registro de recetas / cumplimiento regulatorio - No implementado.
-8. Base de datos de pacientes/clientes - No implementado.
+8. Base de datos de pacientes/clientes - IMPLEMENTADO (Clientes/Clientes.py).
 9. Historial de compras por cliente - No implementado.
 10. Recordatorios de recompra - No implementado.
-11. Reportes analíticos / Dashboard - No implementado.
-12. Eliminar producto del inventario - No implementado (solo agregar/editar).
+11. Reportes analíticos / Dashboard - IMPLEMENTADO (Reportes/Reportes.py).
+12. Eliminar producto del inventario - IMPLEMENTADO.
 
 ================================================================
 LISTADO DE PRIORIDADES
 ================================================================
 
-PRIORIDAD ALTA - Bugs críticos:
+PRIORIDAD ALTA - Bugs críticos: COMPLETADOS
 
-1. Corregir eliminar_registro() en Registro.py — Actualmente borra TODO el Excel.
-   Debe eliminar solo el registro seleccionado de datos y re-guardar.
-2. Validar campos vacíos en Inventario.py antes de float() (L114) — Crashea si el precio está vacío.
-3. Proteger tree.selection()[0] en Editar_Producto.py (L108) — Crashea si no hay selección.
-4. Agregar validación de campos vacíos en guardar_datos() de Inventario.py — No valida nombre, cantidad y precio.
+1. [OK] Corregir eliminar_registro() en Registro.py
+2. [OK] Validar campos vacíos en Inventario.py antes de float()
+3. [OK] Proteger tree.selection()[0] en Editar_Producto.py
+4. [OK] Agregar validación de campos vacíos en guardar_datos()
 
-PRIORIDAD MEDIA - Código muerto y mejoras:
+PRIORIDAD MEDIA - Código muerto y mejoras: COMPLETADOS
 
-5. Eliminar todo el código muerto listado arriba (prints debug, variables globales inútiles, geometry duplicada, etc.)
-6. Eliminar productos_guardados y ventana_editar_abierta de Inventario.py — no se usan.
-7. Unificar centrar_ventana() — Crear utils.py con la función y reutilizar en todos los archivos.
-8. Eliminar imports dentro de funciones — Mover imports al inicio de cada archivo.
-9. Eliminar el bloque if __name__ muerto de Editar_Producto.py.
+5. [OK] Eliminar todo el código muerto
+6. [OK] Eliminar productos_guardados y ventana_editar_abierta
+7. [OK] Unificar centrar_ventana() en utils.py
+8. [OK] Eliminar imports dentro de funciones
+9. [OK] Eliminar el bloque if __name__ muerto
 
-PRIORIDAD BAJA - Funcionalidades nuevas:
+PRIORIDAD BAJA - Funcionalidades nuevas: COMPLETADOS
 
-10. Eliminar producto del inventario — Módulo Editar_Producto solo permite editar, no borrar.
-11. Alertas de vencimiento — Notificación al abrir inventario de productos próximos a vencer.
-12. Niveles mínimos de stock — Alerta cuando un producto cae por debajo de un umbral.
-13. Ventas fraccionadas — Permitir vender por unidad, caja, etc.
-14. Base de datos de clientes — Nuevo módulo de fidelización.
-15. Reportes analíticos — Dashboard con productos más/menos vendidos.
+10. [OK] Eliminar producto del inventario
+11. [OK] Alertas de vencimiento
+12. [OK] Niveles mínimos de stock
+13. [OK] Ventas fraccionadas
+14. [OK] Base de datos de clientes
+15. [OK] Reportes analíticos / Dashboard
+
+PENDIENTES FUTUROS:
+
+- Métodos de pago integrados
+- Facturación electrónica
+- Código de barras y lote por producto
+- Registro de recetas / cumplimiento regulatorio
+- Historial de compras por cliente
+- Recordatorios de recompra

@@ -131,12 +131,27 @@ def mostrar_ventana_editar():
         tree.bind("<Double-1>", editar_celda)
 
         # Botones de control
-        boton_cerrar_resultados = tk.Button(ventana_resultados, text="Cerrar", command=lambda: cerrar_ventana_resultados(ventana_resultados))
-        boton_cerrar_resultados.pack(side=tk.LEFT, padx=10, pady=10)
+        frame_botones = tk.Frame(ventana_resultados)
+        frame_botones.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
-        # Botón Guardar Cambios en la esquina inferior derecha
-        boton_guardar_cambios = tk.Button(ventana_resultados, text="Guardar Cambios", command=guardar_todos_los_cambios)
-        boton_guardar_cambios.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-10)  # Ubicado en la esquina inferior derecha
+        boton_cerrar_resultados = tk.Button(frame_botones, text="Cerrar", command=lambda: cerrar_ventana_resultados(ventana_resultados))
+        boton_cerrar_resultados.pack(side=tk.LEFT)
+
+        def eliminar_producto():
+            seleccion = tree.selection()
+            if not seleccion:
+                messagebox.showwarning("Advertencia", "Seleccione un producto para eliminar.")
+                return
+            if not messagebox.askyesno("Confirmar", f"¿Eliminar {len(seleccion)} producto(s) seleccionado(s)?"):
+                return
+            for item in seleccion:
+                tree.delete(item)
+
+        boton_eliminar = tk.Button(frame_botones, text="Eliminar", command=eliminar_producto)
+        boton_eliminar.pack(side=tk.LEFT, padx=10)
+
+        boton_guardar_cambios = tk.Button(frame_botones, text="Guardar Cambios", command=guardar_todos_los_cambios)
+        boton_guardar_cambios.pack(side=tk.RIGHT)
 
     boton_buscar = tk.Button(ventana_editar, text="Buscar", command=buscar_datos)
     boton_buscar.pack(pady=10)

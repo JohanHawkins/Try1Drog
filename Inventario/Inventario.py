@@ -12,6 +12,76 @@ import random
 import string
 from utils import centrar_ventana
 
+def verificar_vencimientos():
+    archivo_excel = os.path.join("Inventario", "inventario_productos.xlsx")
+    if not os.path.exists(archivo_excel):
+        return
+    try:
+        df = pd.read_excel(archivo_excel)
+        if 'Fecha Vencimiento' not in df.columns:
+            return
+        hoy = datetime.now()
+        alertas = {30: [], 60: [], 90: []}
+        for _, row in df.iterrows():
+            try:
+                fecha_str = str(row['Fecha Vencimiento'])
+                fecha_ven = datetime.strptime(fecha_str, "%d/%m/%Y")
+                dias = (fecha_ven - hoy).days
+                if dias < 0:
+                    alertas[30].append((row['Nombre Producto'], "VENCIDO"))
+                elif dias <= 30:
+                    alertas[30].append((row['Nombre Producto'], f"{dias} días"))
+                elif dias <= 60:
+                    alertas[60].append((row['Nombre Producto'], f"{dias} días"))
+                elif dias <= 90:
+                    alertas[90].append((row['Nombre Producto'], f"{dias} días"))
+            except (ValueError, TypeError):
+                continue
+        mensaje = ""
+        if alertas[30]:
+            mensaje += "🔴 VENCE EN 30 DÍAS O YA VENCIDOS:\n"
+            for nombre, dias in alertas[30]:
+                mensaje += f"  - {nombre} ({dias})\n"
+            mensaje += "\n"
+        if alertas[60]:
+            mensaje += "🟡 VENCE EN 60 DÍAS:\n"
+            for nombre, dias in alertas[60]:
+                mensaje += f"  - {nombre} ({dias})\n"
+            mensaje += "\n"
+        if alertas[90]:
+            mensaje += "🟢 VENCE EN 90 DÍAS:\n"
+            for nombre, dias in alertas[90]:
+                mensaje += f"  - {nombre} ({dias})\n"
+        if mensaje:
+            messagebox.showwarning("Alerta de Vencimiento", mensaje.strip())
+    except Exception:
+        pass
+
+def verificar_stock_minimo():
+    archivo_excel = os.path.join("Inventario", "inventario_productos.xlsx")
+    if not os.path.exists(archivo_excel):
+        return
+    try:
+        df = pd.read_excel(archivo_excel)
+        if 'Cantidad Producto' not in df.columns or 'Stock Minimo' not in df.columns:
+            return
+        bajos = []
+        for _, row in df.iterrows():
+            try:
+                cantidad = int(row['Cantidad Producto'])
+                minimo = int(row['Stock Minimo'])
+                if cantidad <= minimo:
+                    bajos.append((row['Nombre Producto'], cantidad, minimo))
+            except (ValueError, TypeError):
+                continue
+        if bajos:
+            mensaje = "⚠️ PRODUCTOS CON STOCK BAJO:\n\n"
+            for nombre, cantidad, minimo in bajos:
+                mensaje += f"  - {nombre}: {cantidad} unidades (mínimo: {minimo})\n"
+            messagebox.showwarning("Alerta de Stock Mínimo", mensaje.strip())
+    except Exception:
+        pass
+
 def volver_al_menu(ventana):
     ventana.destroy()
     import VenMenu
@@ -111,6 +181,9 @@ def guardar_datos():
         return
 
     cantidad_producto = int(cantidad_producto)
+
+    stock_minimo = entry_stock_minimo.get().strip()
+    stock_minimo = int(stock_minimo) if stock_minimo else 0
     
     # Obtener el color de la categoría
     categoria_color = canvas_categoria.cget("bg")
@@ -127,14 +200,17 @@ def guardar_datos():
     fecha_vencimiento = date_entry_vencimiento.get_date()
 
     codigo = entry_identificador.get()
+    unidad = entry_unidad.get().strip() or "Unidad"
 
     # Crear un diccionario con los datos
     datos = {
         "Nombre Producto": [nombre_producto + ": " + codigo],
         "Cantidad Producto": [cantidad_producto],
         "Precio Producto (COP)": [precio_producto],
-        "Categoria": [categoria],  # Guardar la categoría con el color adecuado
-        "Fecha Vencimiento": [fecha_vencimiento.strftime("%d/%m/%Y")]  # Formato de fecha como string
+        "Categoria": [categoria],
+        "Fecha Vencimiento": [fecha_vencimiento.strftime("%d/%m/%Y")],
+        "Stock Minimo": [stock_minimo],
+        "Unidad": [unidad]
     }
 
     # Ruta para guardar el archivo en la carpeta 'Inventario'
@@ -170,9 +246,11 @@ def guardar_datos():
     tk.messagebox.showinfo("Éxito", "Los datos se han guardado correctamente.")
 
 def mostrar_ventana_inventario():
+    verificar_vencimientos()
+    verificar_stock_minimo()
     ventana_inventario = tk.Tk()
     ventana_inventario.title("Inventario")
-    ventana_inventario.geometry("350x300")
+    ventana_inventario.geometry("350x370")
     ventana_inventario.resizable(False, False)
 
     ventana_inventario.grab_set()  # Previene la interacción con ventanas anteriores
@@ -210,41 +288,56 @@ def mostrar_ventana_inventario():
     entry_cantidad = tk.Entry(frame_formulario, validate="key", validatecommand=vcmd_entero)
     entry_cantidad.grid(row=2, column=1, padx=5, pady=5)
 
+    # Campo para Stock Mínimo
+    label_stock_min = tk.Label(frame_formulario, text="Stock Mínimo:")
+    label_stock_min.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
+    global entry_stock_minimo
+    entry_stock_minimo = tk.Entry(frame_formulario, validate="key", validatecommand=vcmd_entero)
+    entry_stock_minimo.grid(row=3, column=1, padx=5, pady=5)
+
     # Campo para Precio Producto
     label_precio = tk.Label(frame_formulario, text="Precio Producto (COP):")
-    label_precio.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
+    label_precio.grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
     vcmd_real = (ventana_inventario.register(solo_reales), '%S', '%P')
     global entry_precio
     entry_precio = tk.Entry(frame_formulario, validate="key", validatecommand=vcmd_real)
-    entry_precio.grid(row=3, column=1, padx=5, pady=5)
+    entry_precio.grid(row=4, column=1, padx=5, pady=5)
 
     # Campo para seleccionar Fecha de Entrega
     global date_entry_entrega
     label_fecha_entrega = tk.Label(frame_formulario, text="Fecha de Entrega:")
-    label_fecha_entrega.grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
+    label_fecha_entrega.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
     date_entry_entrega = DateEntry(frame_formulario, date_pattern='dd/mm/yyyy', width=16, background='darkblue',
                                    foreground='white', borderwidth=2, state='readonly')  # Solo lectura
-    date_entry_entrega.grid(row=4, column=1, padx=5, pady=5)
+    date_entry_entrega.grid(row=5, column=1, padx=5, pady=5)
     date_entry_entrega.bind("<<DateEntrySelected>>", actualizar_color_categoria)
 
     # Campo para seleccionar Fecha de Vencimiento
     global date_entry_vencimiento
     label_fecha_vencimiento = tk.Label(frame_formulario, text="Fecha de Vencimiento:")
-    label_fecha_vencimiento.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+    label_fecha_vencimiento.grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
     date_entry_vencimiento = DateEntry(frame_formulario, date_pattern='dd/mm/yyyy', width=16, background='darkblue',
                                        foreground='white', borderwidth=2, state='readonly')  # Solo lectura
-    date_entry_vencimiento.grid(row=5, column=1, padx=5, pady=5)
+    date_entry_vencimiento.grid(row=6, column=1, padx=5, pady=5)
     date_entry_vencimiento.bind("<<DateEntrySelected>>", actualizar_color_categoria)
 
     # Rectángulo para la categoría
     label_categoria = tk.Label(frame_formulario, text="Categoria:")
-    label_categoria.grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
+    label_categoria.grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
     global canvas_categoria
     canvas_categoria = tk.Canvas(frame_formulario, width=120, height=15, bg="white")
-    canvas_categoria.grid(row=6, column=1, padx=5, pady=5)
+    canvas_categoria.grid(row=7, column=1, padx=5, pady=5)
 
     # Inicializar el color del rectángulo al cargar la ventana
     actualizar_color_categoria()
+
+    # Campo para Unidad de Venta
+    label_unidad = tk.Label(frame_formulario, text="Unidad de Venta:")
+    label_unidad.grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
+    global entry_unidad
+    entry_unidad = tk.Entry(frame_formulario)
+    entry_unidad.grid(row=8, column=1, padx=5, pady=5)
+    entry_unidad.insert(0, "Unidad")
 
     # Botón para volver
     boton_volver = tk.Button(ventana_inventario, text="Volver al menú", command=lambda: volver_al_menu(ventana_inventario))
