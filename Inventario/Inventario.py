@@ -111,7 +111,25 @@ def mostrar_codigo_producto():
 def guardar_datos():
     nombre_producto = entry_nombre.get().strip()
     cantidad_producto = entry_cantidad.get()
-    precio_producto = float(entry_precio.get())  # Guardar el precio como un número flotante
+    precio_producto = entry_precio.get().strip()
+
+    if not nombre_producto:
+        tk.messagebox.showwarning("Advertencia", "Debe ingresar el nombre del producto.")
+        return
+    if not cantidad_producto:
+        tk.messagebox.showwarning("Advertencia", "Debe ingresar la cantidad del producto.")
+        return
+    if not precio_producto:
+        tk.messagebox.showwarning("Advertencia", "Debe ingresar el precio del producto.")
+        return
+
+    try:
+        precio_producto = float(precio_producto)
+    except ValueError:
+        tk.messagebox.showerror("Error", "El precio ingresado no es un número válido.")
+        return
+
+    cantidad_producto = int(cantidad_producto)
     
     # Obtener el color de la categoría
     categoria_color = canvas_categoria.cget("bg")

@@ -87,9 +87,13 @@ def guardar_registros():
 
     messagebox.showinfo("Éxito", f"Registros guardados en {formato}")
 
+# Definir variables de paginación a nivel de módulo
+current_page = 0
+rows_per_page = 20
+
 # Definir frame_tabla y datos_filtrados como variables globales
 def mostrar_ventana_registro():
-    global frame_tabla, datos_filtrados
+    global frame_tabla, datos_filtrados, datos, current_page, datos
     
     ventana_registro = tk.Tk()
     ventana_registro.title("Registro")
@@ -139,11 +143,8 @@ def mostrar_ventana_registro():
         def actualizar_tabla(start_row=0, end_row=20):
             mostrar_tabla_registros(frame_tabla, datos_filtrados, start_row, end_row)
 
-        current_page = 0
-        rows_per_page = 20
-
         def mostrar_pagina(pagina):
-            nonlocal current_page
+            global current_page
             current_page = pagina
             start_row = current_page * rows_per_page
             end_row = start_row + rows_per_page
@@ -195,7 +196,6 @@ def mostrar_ventana_registro():
                 mensaje_error.config(text="")
                 mostrar_pagina(0)
 
-        global datos_filtrados
         datos_filtrados = datos
         mostrar_tabla_registros(frame_tabla, datos, 0, 20)
 
@@ -225,27 +225,26 @@ def mostrar_ventana_registro():
 
 # Función para eliminar registros
 def eliminar_registro():
-    global datos_filtrados
+    global datos_filtrados, datos, current_page
 
-    # Confirmar con el usuario antes de eliminar
-    if not messagebox.askyesno("Confirmar", "¿Estás seguro de que deseas eliminar este registro?"):
-        return  # No hacer nada si el usuario cancela
+    if not messagebox.askyesno("Confirmar", "¿Estás seguro de que deseas eliminar los registros filtrados?"):
+        return
 
-    # Comprobar si hay datos filtrados
     if datos_filtrados.empty:
         messagebox.showerror("Error", "No hay datos para eliminar.")
         return
 
-    # Aquí se podrían aplicar más condiciones de eliminación si es necesario (por ejemplo, eliminar un registro específico)
-    # En este caso, simplemente eliminamos todos los registros filtrados.
-    datos_filtrados = datos_filtrados.iloc[0:0]  # Vaciar el DataFrame filtrado
-
     try:
+        # Eliminar los registros filtrados del DataFrame original
+        indices_a_eliminar = datos_filtrados.index
+        datos = datos.drop(indices_a_eliminar).reset_index(drop=True)
+        datos_filtrados = datos.copy()
+        current_page = 0
+
         # Guardar los cambios en el archivo original
         excel_path = "Ventas/registros_compra.xlsx"
-        datos_filtrados.to_excel(excel_path, index=False)
-        messagebox.showinfo("Éxito", "El registro ha sido eliminado correctamente.")
-        # Actualizar la tabla con los nuevos datos (vacíos)
-        mostrar_tabla_registros(frame_tabla, datos_filtrados, 0, 20)
+        datos.to_excel(excel_path, index=False)
+        messagebox.showinfo("Éxito", "Los registros han sido eliminados correctamente.")
+        mostrar_tabla_registros(frame_tabla, datos_filtrados, 0, rows_per_page)
     except Exception as e:
-        messagebox.showerror("Error", f"Error al eliminar el registro: {e}")
+        messagebox.showerror("Error", f"Error al eliminar los registros: {e}")

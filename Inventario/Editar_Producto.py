@@ -105,8 +105,11 @@ def mostrar_ventana_editar():
 
         # Función para editar la celda con doble clic
         def editar_celda(event):
-            item = tree.selection()[0]  # Selecciona el item (fila) en el que se hizo doble clic
-            col = tree.identify_column(event.x)  # Identifica la columna donde se hizo doble clic
+            seleccion = tree.selection()
+            if not seleccion:
+                return
+            item = seleccion[0]
+            col = tree.identify_column(event.x)
             col = int(col[1:]) - 1  # Convierte la columna a índice numérico
 
             valor_actual = tree.item(item, "values")[col]
