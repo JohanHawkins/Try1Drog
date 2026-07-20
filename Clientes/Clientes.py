@@ -1,8 +1,10 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 import pandas as pd
 import os
 from utils import centrar_ventana
+from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
+                    crear_entry, crear_label, crear_card, crear_treeview)
 
 ARCHIVO_CLIENTES = os.path.join("Clientes", "clientes.xlsx")
 
@@ -15,65 +17,68 @@ def guardar_clientes(df):
     os.makedirs("Clientes", exist_ok=True)
     df.to_excel(ARCHIVO_CLIENTES, index=False)
 
+def volver_al_menu(ventana):
+    ventana.destroy()
+    import VenMenu
+    VenMenu.mostrar_ventana_menu()
+
 def mostrar_ventana_clientes():
+    paleta = get_paleta()
+
     ventana = tk.Tk()
-    ventana.title("Gestión de Clientes")
-    ventana.geometry("650x450")
+    ventana.title("Drogs+ - Gestión de Clientes")
+    ventana.geometry("700x500")
     ventana.resizable(False, False)
+    ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
     if os.path.exists(icon_path):
         ventana.iconbitmap(icon_path)
-
+    aplicar_estilos(ventana)
     centrar_ventana(ventana)
 
-    frame_form = tk.Frame(ventana)
-    frame_form.pack(padx=10, pady=10, anchor="w")
+    crear_header(ventana, "Gestión de Clientes")
 
-    tk.Label(frame_form, text="Nombre:").grid(row=0, column=0, sticky="w", pady=2)
-    entry_nombre = tk.Entry(frame_form, width=25)
-    entry_nombre.grid(row=0, column=1, padx=5, pady=2)
+    main_frame = tk.Frame(ventana, bg=paleta["bg_principal"])
+    main_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
-    tk.Label(frame_form, text="Cédula:").grid(row=0, column=2, sticky="w", pady=2)
-    entry_cedula = tk.Entry(frame_form, width=15)
-    entry_cedula.grid(row=0, column=3, padx=5, pady=2)
+    form_card = crear_card(main_frame, "Datos del Cliente")
+    form_card.pack(fill="x", pady=(0, 10))
 
-    tk.Label(frame_form, text="Teléfono:").grid(row=1, column=0, sticky="w", pady=2)
-    entry_telefono = tk.Entry(frame_form, width=25)
-    entry_telefono.grid(row=1, column=1, padx=5, pady=2)
+    form_frame = tk.Frame(form_card, bg=paleta["bg_card"])
+    form_frame.pack(fill="x", padx=15, pady=10)
 
-    tk.Label(frame_form, text="Dirección:").grid(row=1, column=2, sticky="w", pady=2)
-    entry_direccion = tk.Entry(frame_form, width=15)
-    entry_direccion.grid(row=1, column=3, padx=5, pady=2)
+    labels = ["Nombre:", "Cédula:", "Teléfono:", "Dirección:", "Email:"]
+    entries = {}
+    for i, texto in enumerate(labels):
+        crear_label(form_frame, texto, "normal").grid(row=i, column=0, sticky="w", padx=(0, 10), pady=4)
+        key = texto.lower().replace(":", "").strip()
+        e = crear_entry(form_frame, width=30)
+        e.grid(row=i, column=1, sticky="w", pady=4)
+        entries[key] = e
 
-    tk.Label(frame_form, text="Email:").grid(row=2, column=0, sticky="w", pady=2)
-    entry_email = tk.Entry(frame_form, width=25)
-    entry_email.grid(row=2, column=1, padx=5, pady=2)
+    tree_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    tree_frame.pack(fill="both", expand=True, pady=(0, 10))
 
     columns = ["Nombre", "Cedula", "Telefono", "Direccion", "Email"]
-    tree = ttk.Treeview(ventana, columns=columns, show="headings", height=12)
-    for col in columns:
-        tree.heading(col, text=col)
-        tree.column(col, width=120)
-    tree.pack(padx=10, pady=5, fill="x")
+    tree = crear_treeview(tree_frame, columns)
+    tree.pack(fill="both", expand=True)
 
     def cargar_tabla():
         for item in tree.get_children():
             tree.delete(item)
         df = cargar_clientes()
-        for _, row in df.iterrows():
-            tree.insert("", "end", values=[row.get(c, "") for c in columns])
+        for i, (_, row) in enumerate(df.iterrows()):
+            tag = "evenrow" if i % 2 == 0 else "oddrow"
+            tree.insert("", "end", values=[row.get(c, "") for c in columns], tags=(tag,))
 
     def limpiar_campos():
-        entry_nombre.delete(0, tk.END)
-        entry_cedula.delete(0, tk.END)
-        entry_telefono.delete(0, tk.END)
-        entry_direccion.delete(0, tk.END)
-        entry_email.delete(0, tk.END)
+        for e in entries.values():
+            e.delete(0, tk.END)
 
     def agregar_cliente():
-        nombre = entry_nombre.get().strip()
-        cedula = entry_cedula.get().strip()
+        nombre = entries["nombre"].get().strip()
+        cedula = entries["cédula"].get().strip()
         if not nombre or not cedula:
             messagebox.showwarning("Advertencia", "Nombre y Cédula son obligatorios.")
             return
@@ -84,9 +89,9 @@ def mostrar_ventana_clientes():
         nuevo = pd.DataFrame([{
             "Nombre": nombre,
             "Cedula": cedula,
-            "Telefono": entry_telefono.get().strip(),
-            "Direccion": entry_direccion.get().strip(),
-            "Email": entry_email.get().strip()
+            "Telefono": entries["teléfono"].get().strip(),
+            "Direccion": entries["dirección"].get().strip(),
+            "Email": entries["email"].get().strip()
         }])
         df = pd.concat([df, nuevo], ignore_index=True)
         guardar_clientes(df)
@@ -116,27 +121,21 @@ def mostrar_ventana_clientes():
             return
         valores = tree.item(seleccion[0], "values")
         limpiar_campos()
-        entry_nombre.insert(0, valores[0])
-        entry_cedula.insert(0, valores[1])
-        entry_telefono.insert(0, valores[2])
-        entry_direccion.insert(0, valores[3])
-        entry_email.insert(0, valores[4])
+        entries["nombre"].insert(0, valores[0])
+        entries["cédula"].insert(0, valores[1])
+        entries["teléfono"].insert(0, valores[2])
+        entries["dirección"].insert(0, valores[3])
+        entries["email"].insert(0, valores[4])
 
     tree.bind("<<TreeviewSelect>>", seleccionar_cliente)
 
-    frame_botones = tk.Frame(ventana)
-    frame_botones.pack(pady=5)
+    btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    btn_frame.pack(fill="x")
 
-    tk.Button(frame_botones, text="Agregar", command=agregar_cliente).pack(side=tk.LEFT, padx=5)
-    tk.Button(frame_botones, text="Eliminar", command=eliminar_cliente).pack(side=tk.LEFT, padx=5)
-    tk.Button(frame_botones, text="Limpiar", command=limpiar_campos).pack(side=tk.LEFT, padx=5)
-
-    def volver():
-        ventana.destroy()
-        import VenMenu
-        VenMenu.mostrar_ventana_menu()
-
-    tk.Button(frame_botones, text="Volver al menú", command=volver).pack(side=tk.LEFT, padx=5)
+    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana), "Secundario").pack(side="left")
+    crear_boton(btn_frame, "🗑 Eliminar", eliminar_cliente, "Peligro").pack(side="right", padx=(10, 0))
+    crear_boton(btn_frame, "✓ Agregar", agregar_cliente, "Exito").pack(side="right")
+    crear_boton(btn_frame, "Limpiar", limpiar_campos, "Secundario").pack(side="right", padx=(0, 10))
 
     cargar_tabla()
     ventana.mainloop()

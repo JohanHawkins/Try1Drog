@@ -4,24 +4,19 @@ import os
 from tkinter import filedialog, messagebox
 from fpdf import FPDF
 from utils import centrar_ventana
+from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
+                    crear_entry, crear_label, crear_card, crear_treeview)
+
+current_page = 0
+rows_per_page = 20
+frame_tabla = None
+datos_filtrados = None
+datos = None
 
 def volver_al_menu(ventana):
     ventana.destroy()
     import VenMenu
     VenMenu.mostrar_ventana_menu()
-
-def mostrar_tabla_registros(frame, datos, start_row, end_row):
-    for widget in frame.winfo_children():
-        widget.destroy()
-
-    for col_idx, col_name in enumerate(datos.columns):
-        encabezado = tk.Label(frame, text=col_name, font=("Arial", 10, "bold"), borderwidth=1, relief="solid")
-        encabezado.grid(row=0, column=col_idx, sticky="nsew")
-
-    for row_idx, row_data in enumerate(datos.values[start_row:end_row]):
-        for col_idx, cell_data in enumerate(row_data):
-            celda = tk.Label(frame, text=cell_data, font=("Arial", 10), borderwidth=1, relief="solid")
-            celda.grid(row=row_idx + 1, column=col_idx, sticky="nsew")
 
 def aplicar_filtro(datos, nombre, fecha, hora):
     if nombre:
@@ -33,211 +28,181 @@ def aplicar_filtro(datos, nombre, fecha, hora):
     return datos
 
 def guardar_registros():
-    # Selección de formato
-    formato = filedialog.asksaveasfilename(defaultextension=".xlsx", 
+    formato = filedialog.asksaveasfilename(defaultextension=".xlsx",
                                            filetypes=[("Excel files", "*.xlsx"),
                                                       ("Text files", "*.txt"),
                                                       ("PDF files", "*.pdf")])
-    
     if not formato:
-        return  # Salir si el usuario cancela
-
+        return
     extension = os.path.splitext(formato)[1].lower()
-    
     if extension == ".xlsx":
         datos_filtrados.to_excel(formato, index=False)
     elif extension == ".txt":
         datos_filtrados.to_csv(formato, index=False, sep='\t')
     elif extension == ".pdf":
         try:
-            # Crear el archivo PDF
             pdf = FPDF()
             pdf.set_auto_page_break(auto=True, margin=15)
             pdf.add_page()
-            pdf.set_font("Arial", size=12)
-
-            # Agregar encabezados
-            encabezados = list(datos_filtrados.columns)
             pdf.set_font("Arial", style="B", size=12)
+            encabezados = list(datos_filtrados.columns)
             for encabezado in encabezados:
                 pdf.cell(40, 10, encabezado, border=1)
             pdf.ln()
-
-            # Agregar filas de datos
             pdf.set_font("Arial", size=10)
             for row in datos_filtrados.values:
                 for cell in row:
                     pdf.cell(40, 10, str(cell), border=1)
                 pdf.ln()
-
-            # Guardar el archivo PDF
             pdf.output(formato)
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo guardar el archivo como PDF: {e}")
+            messagebox.showerror("Error", f"No se pudo guardar como PDF: {e}")
             return
     else:
         messagebox.showerror("Error", "Formato no soportado.")
-
     messagebox.showinfo("Éxito", f"Registros guardados en {formato}")
 
-# Definir variables de paginación a nivel de módulo
-current_page = 0
-rows_per_page = 20
-
-# Definir frame_tabla y datos_filtrados como variables globales
-def mostrar_ventana_registro():
-    global frame_tabla, datos_filtrados, datos, current_page
-    
-    ventana_registro = tk.Tk()
-    ventana_registro.title("Registro")
-    ventana_registro.geometry("600x400")
-    ventana_registro.resizable(False, False)
-
-    excel_path = "Ventas/registros_compra.xlsx"
-    if os.path.exists(excel_path):
-        datos = pd.read_excel(excel_path)
-
-        icon_path = os.path.join("images", "cruz_azul.ico")
-        ventana_registro.iconbitmap(icon_path)
-
-        centrar_ventana(ventana_registro)
-
-        contenedor = tk.Frame(ventana_registro)
-        contenedor.pack(expand=False, fill=tk.BOTH)
-
-        # Crear frame para los filtros
-        frame_filtros = tk.Frame(contenedor, padx=10, pady=5)
-        frame_filtros.pack(anchor="center")
-
-        tk.Label(frame_filtros, text="Producto:").grid(row=0, column=0)
-        entrada_nombre = tk.Entry(frame_filtros, width=15)
-        entrada_nombre.grid(row=0, column=1)
-
-        tk.Label(frame_filtros, text="Fecha (AA-MM-DD):").grid(row=0, column=2)
-        entrada_fecha = tk.Entry(frame_filtros, width=12)
-        entrada_fecha.grid(row=0, column=3)
-
-        tk.Label(frame_filtros, text="Hora (HH:MM):").grid(row=0, column=4)
-        entrada_hora = tk.Entry(frame_filtros, width=10)
-        entrada_hora.grid(row=0, column=5)
-
-        # Crear un frame para la tabla y el scrollbar
-        frame_tabla_scroll = tk.Frame(contenedor)
-        frame_tabla_scroll.pack(pady=10, padx=10, fill=tk.X)
-
-        canvas = tk.Canvas(frame_tabla_scroll)
-        frame_tabla = tk.Frame(canvas)
-        scrollbar = tk.Scrollbar(frame_tabla_scroll, orient="vertical", command=canvas.yview)
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        def actualizar_tabla(start_row=0, end_row=20):
-            mostrar_tabla_registros(frame_tabla, datos_filtrados, start_row, end_row)
-
-        def mostrar_pagina(pagina):
-            global current_page
-            current_page = pagina
-            start_row = current_page * rows_per_page
-            end_row = start_row + rows_per_page
-
-            if end_row > len(datos_filtrados):
-                end_row = len(datos_filtrados)
-
-            if start_row >= len(datos_filtrados):
-                current_page = (len(datos_filtrados) - 1) // rows_per_page
-
-            actualizar_tabla(start_row, end_row)
-
-        def siguiente_pagina():
-            mostrar_pagina(current_page + 1)
-
-        def pagina_anterior():
-            mostrar_pagina(current_page - 1)
-
-        # Frame para los botones de paginación
-        frame_botones_superiores = tk.Frame(contenedor)
-        frame_botones_superiores.pack(side=tk.TOP, pady=5)
-
-        boton_anterior = tk.Button(frame_botones_superiores, text="<< Anterior", command=pagina_anterior)
-        boton_anterior.pack(side=tk.LEFT, padx=(0, 5))
-
-        boton_siguiente = tk.Button(frame_botones_superiores, text="Siguiente >>", command=siguiente_pagina)
-        boton_siguiente.pack(side=tk.LEFT)
-
-        # Mensaje de error de filtro
-        mensaje_error = tk.Label(ventana_registro, text="", font=("Arial", 10), fg="red")
-        mensaje_error.pack(pady=10)
-
-        def filtrar_datos():
-            nombre = entrada_nombre.get()
-            fecha = entrada_fecha.get()
-            hora = entrada_hora.get()
-            global datos_filtrados
-            datos_filtrados = aplicar_filtro(datos, nombre, fecha, hora)
-
-            if datos_filtrados.empty:
-                if nombre:
-                    mensaje_error.config(text=f"No se ha encontrado el filtro 'Producto: {nombre}'")
-                elif fecha:
-                    mensaje_error.config(text=f"No se ha encontrado el filtro 'Fecha: {fecha}'")
-                elif hora:
-                    mensaje_error.config(text=f"No se ha encontrado el filtro 'Hora: {hora}'")
-                mostrar_tabla_registros(frame_tabla, datos)
-            else:
-                mensaje_error.config(text="")
-                mostrar_pagina(0)
-
-        datos_filtrados = datos
-        mostrar_tabla_registros(frame_tabla, datos, 0, 20)
-
-        canvas.create_window((0, 0), window=frame_tabla, anchor="nw")
-
-        # Frame para los botones de filtro y volver
-        frame_botones_inferiores = tk.Frame(contenedor)
-        frame_botones_inferiores.pack(side=tk.BOTTOM, pady=10)
-
-        boton_guardar = tk.Button(frame_botones_inferiores, text="Guardar", command=guardar_registros)
-        boton_guardar.pack(side=tk.RIGHT, padx=(10, 0))
-
-        boton_eliminar = tk.Button(frame_botones_inferiores, text="Eliminar Registro", command=eliminar_registro)
-        boton_eliminar.pack(side=tk.RIGHT, padx=(220, 0))
-
-        boton_filtrar = tk.Button(frame_botones_inferiores, text="Aplicar Filtro", command=filtrar_datos)
-        boton_filtrar.pack(side=tk.RIGHT, padx=(10, 0))
-
-        boton_volver = tk.Button(frame_botones_inferiores, text="Volver al menú", command=lambda: volver_al_menu(ventana_registro))
-        boton_volver.pack(side=tk.LEFT, padx=(0, 0))
-
-    else:
-        mensaje_error = tk.Label(ventana_registro, text="Archivo 'registros_compra.xlsx' no encontrado.", font=("Arial", 10), fg="red")
-        mensaje_error.pack(pady=10)
-
-    ventana_registro.mainloop()
-
-# Función para eliminar registros
 def eliminar_registro():
     global datos_filtrados, datos, current_page
-
-    if not messagebox.askyesno("Confirmar", "¿Estás seguro de que deseas eliminar los registros filtrados?"):
+    if not messagebox.askyesno("Confirmar", "¿Eliminar los registros filtrados?"):
         return
-
     if datos_filtrados.empty:
         messagebox.showerror("Error", "No hay datos para eliminar.")
         return
-
     try:
-        # Eliminar los registros filtrados del DataFrame original
         indices_a_eliminar = datos_filtrados.index
         datos = datos.drop(indices_a_eliminar).reset_index(drop=True)
         datos_filtrados = datos.copy()
         current_page = 0
-
-        # Guardar los cambios en el archivo original
-        excel_path = "Ventas/registros_compra.xlsx"
-        datos.to_excel(excel_path, index=False)
-        messagebox.showinfo("Éxito", "Los registros han sido eliminados correctamente.")
-        mostrar_tabla_registros(frame_tabla, datos_filtrados, 0, rows_per_page)
+        datos.to_excel("Ventas/registros_compra.xlsx", index=False)
+        messagebox.showinfo("Éxito", "Registros eliminados correctamente.")
+        cargar_pagina()
     except Exception as e:
-        messagebox.showerror("Error", f"Error al eliminar los registros: {e}")
+        messagebox.showerror("Error", f"Error al eliminar: {e}")
+
+def cargar_pagina():
+    global current_page
+    start = current_page * rows_per_page
+    end = start + rows_per_page
+    sub = datos_filtrados.iloc[start:end]
+
+    for item in tree.get_children():
+        tree.delete(item)
+
+    for _, row in sub.iterrows():
+        valores = [str(v) for v in row.values]
+        tag = "evenrow" if (_ % 2 == 0) else "oddrow"
+        tree.insert("", "end", values=valores, tags=(tag,))
+
+    total = len(datos_filtrados)
+    total_paginas = max(1, (total + rows_per_page - 1) // rows_per_page)
+    lbl_pagina.config(text=f"Página {current_page + 1} de {total_paginas}  ({total} registros)")
+
+def siguiente_pagina():
+    global current_page
+    total_paginas = max(1, (len(datos_filtrados) + rows_per_page - 1) // rows_per_page)
+    if current_page + 1 < total_paginas:
+        current_page += 1
+        cargar_pagina()
+
+def pagina_anterior():
+    global current_page
+    if current_page > 0:
+        current_page -= 1
+        cargar_pagina()
+
+def filtrar_datos():
+    global datos_filtrados, current_page
+    current_page = 0
+    nombre = entrada_nombre.get()
+    fecha = entrada_fecha.get()
+    hora = entrada_hora.get()
+    datos_filtrados = aplicar_filtro(datos, nombre, fecha, hora)
+    if datos_filtrados.empty:
+        mensaje_error.config(text="Sin resultados para el filtro aplicado.")
+    else:
+        mensaje_error.config(text="")
+    cargar_pagina()
+
+def mostrar_ventana_registro():
+    global frame_tabla, datos_filtrados, datos, current_page
+    global tree, entrada_nombre, entrada_fecha, entrada_hora, mensaje_error, lbl_pagina
+
+    paleta = get_paleta()
+    excel_path = "Ventas/registros_compra.xlsx"
+
+    ventana_registro = tk.Tk()
+    ventana_registro.title("Drogs+ - Registro de Ventas")
+    ventana_registro.geometry("750x520")
+    ventana_registro.resizable(False, False)
+    ventana_registro.configure(bg=paleta["bg_principal"])
+
+    icon_path = os.path.join("images", "cruz_azul.ico")
+    if os.path.exists(icon_path):
+        ventana_registro.iconbitmap(icon_path)
+    aplicar_estilos(ventana_registro)
+    centrar_ventana(ventana_registro)
+
+    crear_header(ventana_registro, "Registro de Ventas")
+
+    if not os.path.exists(excel_path):
+        msg_frame = tk.Frame(ventana_registro, bg=paleta["bg_principal"])
+        msg_frame.pack(fill="both", expand=True)
+        crear_label(msg_frame, "Archivo 'registros_compra.xlsx' no encontrado.", "normal", fg=paleta["alerta_rojo"]).pack(pady=50)
+        crear_boton(msg_frame, "← Volver", lambda: volver_al_menu(ventana_registro), "Secundario").pack()
+        ventana_registro.mainloop()
+        return
+
+    datos = pd.read_excel(excel_path)
+    datos_filtrados = datos.copy()
+
+    main_frame = tk.Frame(ventana_registro, bg=paleta["bg_principal"])
+    main_frame.pack(fill="both", expand=True, padx=15, pady=10)
+
+    filtros_card = crear_card(main_frame, "Filtros de Búsqueda")
+    filtros_card.pack(fill="x", pady=(0, 10))
+
+    filtros_frame = tk.Frame(filtros_card, bg=paleta["bg_card"])
+    filtros_frame.pack(fill="x", padx=15, pady=10)
+
+    crear_label(filtros_frame, "Producto:", "normal").grid(row=0, column=0, padx=(0, 5))
+    entrada_nombre = crear_entry(filtros_frame, width=18)
+    entrada_nombre.grid(row=0, column=1, padx=(0, 10))
+
+    crear_label(filtros_frame, "Fecha:", "normal").grid(row=0, column=2, padx=(0, 5))
+    entrada_fecha = crear_entry(filtros_frame, width=12)
+    entrada_fecha.grid(row=0, column=3, padx=(0, 10))
+
+    crear_label(filtros_frame, "Hora:", "normal").grid(row=0, column=4, padx=(0, 5))
+    entrada_hora = crear_entry(filtros_frame, width=10)
+    entrada_hora.grid(row=0, column=5, padx=(0, 10))
+
+    crear_boton(filtros_frame, "🔍 Buscar", filtrar_datos, "Primario").grid(row=0, column=6)
+
+    mensaje_error = crear_label(main_frame, "", "normal", fg=paleta["alerta_rojo"])
+    mensaje_error.pack(anchor="w", pady=(0, 5))
+
+    tabla_card = crear_card(main_frame, None)
+    tabla_card.pack(fill="both", expand=True, pady=(0, 10))
+
+    columnas = list(datos.columns)
+    tree = crear_treeview(tabla_card, columnas)
+    tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+    paginacion_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    paginacion_frame.pack(fill="x", pady=(0, 10))
+
+    crear_boton(paginacion_frame, "← Anterior", pagina_anterior, "Secundario").pack(side="left")
+    lbl_pagina = crear_label(paginacion_frame, "", "normal")
+    lbl_pagina.pack(side="left", padx=15)
+    crear_boton(paginacion_frame, "Siguiente →", siguiente_pagina, "Secundario").pack(side="left")
+
+    btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    btn_frame.pack(fill="x")
+
+    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_registro), "Secundario").pack(side="left")
+    crear_boton(btn_frame, "🗑 Eliminar Filtro", eliminar_registro, "Peligro").pack(side="right", padx=(10, 0))
+    crear_boton(btn_frame, "📥 Exportar", guardar_registros, "Exito").pack(side="right")
+
+    cargar_pagina()
+    ventana_registro.mainloop()

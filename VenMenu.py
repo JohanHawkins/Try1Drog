@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 import os
+from utils import centrar_ventana
+from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
+                    crear_label, toggle_modo_oscuro)
 import Inventario.Inventario as Inventario
 import Ventas.Ventas as Ventas
 import Registro
@@ -8,17 +11,19 @@ import Clientes.Clientes as Clientes
 import Reportes.Reportes as Reportes
 
 def crear_ventana_menu():
+    paleta = get_paleta()
     ventana_menu = tk.Tk()
-    ventana_menu.title("Menú")
-    ventana_menu.geometry("300x300")
-    ventana_menu.resizable(width=False, height=False)
-
-    x = (ventana_menu.winfo_screenwidth() // 2) - (300 // 2)
-    y = (ventana_menu.winfo_screenheight() // 2) - (300 // 2)
-    ventana_menu.geometry('+{}+{}'.format(x, y))
+    ventana_menu.title("Drogs+ - Menú Principal")
+    ventana_menu.geometry("380x420")
+    ventana_menu.resizable(False, False)
+    ventana_menu.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
-    ventana_menu.iconbitmap(icon_path)
+    if os.path.exists(icon_path):
+        ventana_menu.iconbitmap(icon_path)
+
+    aplicar_estilos(ventana_menu)
+    centrar_ventana(ventana_menu)
 
     return ventana_menu
 
@@ -44,30 +49,26 @@ def abrir_reportes(ventana):
 
 def mostrar_ventana_menu():
     ventana_menu = crear_ventana_menu()
+    paleta = get_paleta()
 
-    label_titulo = ttk.Label(ventana_menu, text="Menú Principal", font=("Helvetica", 16))
-    label_titulo.pack(pady=5)
+    crear_header(ventana_menu, "Menú Principal")
 
-    texto_seleccion = tk.Label(ventana_menu, text="Seleccione una opción", font=("Helvetica", 10), fg="#800000")
-    texto_seleccion.pack()
+    body = tk.Frame(ventana_menu, bg=paleta["bg_principal"])
+    body.pack(fill="both", expand=True, padx=20, pady=15)
 
-    boton_gestion_inventario = tk.Button(ventana_menu, text="Gestion de Inventario", font=("Helvetica", 12), command=lambda: abrir_inventario(ventana_menu))
-    boton_gestion_inventario.pack(pady=5, padx=20)
+    crear_label(body, "Seleccione un módulo", "info").pack(pady=(0, 15))
 
-    boton_ventas = tk.Button(ventana_menu, text="Ventas", font=("Helvetica", 12), command=lambda: abrir_ventas(ventana_menu))
-    boton_ventas.pack(pady=5, padx=20)
+    modulos = [
+        ("📦  Gestión de Inventario", lambda: abrir_inventario(ventana_menu)),
+        ("🛒  Punto de Venta", lambda: abrir_ventas(ventana_menu)),
+        ("📋  Historial de Ventas", lambda: abrir_registro(ventana_menu)),
+        ("👤  Clientes", lambda: abrir_clientes(ventana_menu)),
+        ("📊  Reportes y Analítica", lambda: abrir_reportes(ventana_menu)),
+    ]
 
-    boton_registros = tk.Button(ventana_menu, text="Registros", font=("Helvetica", 12), command=lambda: abrir_registro(ventana_menu))
-    boton_registros.pack(pady=5, padx=20)
-
-    boton_clientes = tk.Button(ventana_menu, text="Clientes", font=("Helvetica", 12), command=lambda: abrir_clientes(ventana_menu))
-    boton_clientes.pack(pady=5, padx=20)
-
-    boton_reportes = tk.Button(ventana_menu, text="Reportes", font=("Helvetica", 12), command=lambda: abrir_reportes(ventana_menu))
-    boton_reportes.pack(pady=5, padx=20)
-
-    x = (ventana_menu.winfo_screenwidth() // 2) - (300 // 2)
-    y = (ventana_menu.winfo_screenheight() // 2) - (300 // 2)
-    ventana_menu.geometry('+{}+{}'.format(x, y))
+    for texto, comando in modulos:
+        btn = crear_boton(body, texto, comando, width=30)
+        btn.configure(pady=12, font=("Segoe UI", 11, "bold"))
+        btn.pack(pady=4)
 
     ventana_menu.mainloop()

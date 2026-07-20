@@ -11,76 +11,58 @@ from Inventario.Editar_Producto import mostrar_ventana_editar
 import random
 import string
 from utils import centrar_ventana
+from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
+                    crear_entry, crear_label, crear_card, crear_alerta)
 
 def verificar_vencimientos():
     archivo_excel = os.path.join("Inventario", "inventario_productos.xlsx")
     if not os.path.exists(archivo_excel):
-        return
+        return []
     try:
         df = pd.read_excel(archivo_excel)
         if 'Fecha Vencimiento' not in df.columns:
-            return
+            return []
         hoy = datetime.now()
-        alertas = {30: [], 60: [], 90: []}
+        alertas = []
         for _, row in df.iterrows():
             try:
                 fecha_str = str(row['Fecha Vencimiento'])
                 fecha_ven = datetime.strptime(fecha_str, "%d/%m/%Y")
                 dias = (fecha_ven - hoy).days
                 if dias < 0:
-                    alertas[30].append((row['Nombre Producto'], "VENCIDO"))
+                    alertas.append(("rojo", f"VENCIDO: {row['Nombre Producto']}"))
                 elif dias <= 30:
-                    alertas[30].append((row['Nombre Producto'], f"{dias} días"))
+                    alertas.append(("rojo", f"Vence en {dias} días: {row['Nombre Producto']}"))
                 elif dias <= 60:
-                    alertas[60].append((row['Nombre Producto'], f"{dias} días"))
+                    alertas.append(("amarillo", f"Vence en {dias} días: {row['Nombre Producto']}"))
                 elif dias <= 90:
-                    alertas[90].append((row['Nombre Producto'], f"{dias} días"))
+                    alertas.append(("verde", f"Vence en {dias} días: {row['Nombre Producto']}"))
             except (ValueError, TypeError):
                 continue
-        mensaje = ""
-        if alertas[30]:
-            mensaje += "🔴 VENCE EN 30 DÍAS O YA VENCIDOS:\n"
-            for nombre, dias in alertas[30]:
-                mensaje += f"  - {nombre} ({dias})\n"
-            mensaje += "\n"
-        if alertas[60]:
-            mensaje += "🟡 VENCE EN 60 DÍAS:\n"
-            for nombre, dias in alertas[60]:
-                mensaje += f"  - {nombre} ({dias})\n"
-            mensaje += "\n"
-        if alertas[90]:
-            mensaje += "🟢 VENCE EN 90 DÍAS:\n"
-            for nombre, dias in alertas[90]:
-                mensaje += f"  - {nombre} ({dias})\n"
-        if mensaje:
-            messagebox.showwarning("Alerta de Vencimiento", mensaje.strip())
+        return alertas
     except Exception:
-        pass
+        return []
 
 def verificar_stock_minimo():
     archivo_excel = os.path.join("Inventario", "inventario_productos.xlsx")
     if not os.path.exists(archivo_excel):
-        return
+        return []
     try:
         df = pd.read_excel(archivo_excel)
         if 'Cantidad Producto' not in df.columns or 'Stock Minimo' not in df.columns:
-            return
+            return []
         bajos = []
         for _, row in df.iterrows():
             try:
                 cantidad = int(row['Cantidad Producto'])
                 minimo = int(row['Stock Minimo'])
                 if cantidad <= minimo:
-                    bajos.append((row['Nombre Producto'], cantidad, minimo))
+                    bajos.append(("amarillo", f"Stock bajo: {row['Nombre Producto']} ({cantidad}/{minimo})"))
             except (ValueError, TypeError):
                 continue
-        if bajos:
-            mensaje = "⚠️ PRODUCTOS CON STOCK BAJO:\n\n"
-            for nombre, cantidad, minimo in bajos:
-                mensaje += f"  - {nombre}: {cantidad} unidades (mínimo: {minimo})\n"
-            messagebox.showwarning("Alerta de Stock Mínimo", mensaje.strip())
+        return bajos
     except Exception:
-        pass
+        return []
 
 def volver_al_menu(ventana):
     ventana.destroy()
@@ -96,44 +78,37 @@ def solo_reales(char, texto):
     return False
 
 def calcular_diferencia_meses(fecha_entrega, fecha_vencimiento):
-    """Calcula la diferencia en meses entre dos fechas."""
     return relativedelta(fecha_vencimiento, fecha_entrega).months + relativedelta(fecha_vencimiento, fecha_entrega).years * 12
 
 def actualizar_color_categoria(event=None):
-    """Actualiza el color del rectángulo según la diferencia de meses."""
+    paleta = get_paleta()
     fecha_entrega = date_entry_entrega.get_date()
     fecha_vencimiento = date_entry_vencimiento.get_date()
-
     diferencia_meses = calcular_diferencia_meses(fecha_entrega, fecha_vencimiento)
-    
     if diferencia_meses > 12:
-        canvas_categoria.config(bg="green")
+        canvas_categoria.config(bg=paleta["alerta_verde"])
     elif 6 <= diferencia_meses <= 12:
-        canvas_categoria.config(bg="yellow")
+        canvas_categoria.config(bg=paleta["alerta_amarillo"])
     else:
-        canvas_categoria.config(bg="red")
+        canvas_categoria.config(bg=paleta["alerta_rojo"])
 
 def ajustar_ancho_columnas(ws):
-    """Ajusta el ancho de las columnas según el contenido más largo."""
     for column_cells in ws.columns:
         max_length = 0
-        column = column_cells[0].column_letter  # Obtener la letra de la columna
+        column = column_cells[0].column_letter
         for cell in column_cells:
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(cell.value)
             except:
                 pass
-        adjusted_width = max_length + 2  # Un poco más de espacio
+        adjusted_width = max_length + 2
         ws.column_dimensions[column].width = adjusted_width
 
 def aplicar_color_condicional(archivo_excel):
-    """Aplica color condicional en la columna 'Categoría' según el valor."""
     wb = load_workbook(archivo_excel)
     ws = wb.active
-    
-    # Recorrer la columna de "Categoría" (suponemos que está en la columna 'D')
-    for row in ws.iter_rows(min_row=2, min_col=4, max_col=4):  # Columna D (4ta columna)
+    for row in ws.iter_rows(min_row=2, min_col=4, max_col=4):
         for cell in row:
             if cell.value == "Red":
                 cell.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
@@ -141,23 +116,19 @@ def aplicar_color_condicional(archivo_excel):
                 cell.fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
             elif cell.value == "Green":
                 cell.fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")
-
-    # Ajustar el ancho de las columnas
     ajustar_ancho_columnas(ws)
-
     wb.save(archivo_excel)
 
 def generar_codigo_unico():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
 
 def mostrar_codigo_producto():
-    """Muestra el código alfanumérico cuando se ingresa el nombre del producto."""
     if entry_nombre.get():
         codigo = generar_codigo_unico()
-        entry_identificador.config(state="normal")  # Permite modificar el campo temporalmente
-        entry_identificador.delete(0, tk.END)  # Borra cualquier valor anterior
-        entry_identificador.insert(0, codigo)  # Muestra el nuevo código
-        entry_identificador.config(state="readonly")  # Vuelve a hacer el campo de solo lectura
+        entry_identificador.config(state="normal")
+        entry_identificador.delete(0, tk.END)
+        entry_identificador.insert(0, codigo)
+        entry_identificador.config(state="readonly")
 
 def guardar_datos():
     nombre_producto = entry_nombre.get().strip()
@@ -181,28 +152,24 @@ def guardar_datos():
         return
 
     cantidad_producto = int(cantidad_producto)
-
     stock_minimo = entry_stock_minimo.get().strip()
     stock_minimo = int(stock_minimo) if stock_minimo else 0
-    
-    # Obtener el color de la categoría
+
+    paleta = get_paleta()
     categoria_color = canvas_categoria.cget("bg")
-    if categoria_color == "green":
+    if categoria_color == paleta["alerta_verde"]:
         categoria = "Verde"
-    elif categoria_color == "yellow":
+    elif categoria_color == paleta["alerta_amarillo"]:
         categoria = "Amarillo"
-    elif categoria_color == "red":
+    elif categoria_color == paleta["alerta_rojo"]:
         categoria = "Rojo"
     else:
-        categoria = "Sin definir"  # Por si acaso el color es diferente
+        categoria = "Sin definir"
 
-    # Obtener la fecha de vencimiento
     fecha_vencimiento = date_entry_vencimiento.get_date()
-
     codigo = entry_identificador.get()
     unidad = entry_unidad.get().strip() or "Unidad"
 
-    # Crear un diccionario con los datos
     datos = {
         "Nombre Producto": [nombre_producto + ": " + codigo],
         "Cantidad Producto": [cantidad_producto],
@@ -213,141 +180,126 @@ def guardar_datos():
         "Unidad": [unidad]
     }
 
-    # Ruta para guardar el archivo en la carpeta 'Inventario'
     carpeta_inventario = "Inventario"
-    
-    # Crear la carpeta si no existe
     if not os.path.exists(carpeta_inventario):
         os.makedirs(carpeta_inventario)
 
     archivo_excel = os.path.join(carpeta_inventario, "inventario_productos.xlsx")
-    
-    # Verificar si el archivo ya existe y si el nombre del producto ya está en el inventario
+
     if os.path.exists(archivo_excel):
         df_existente = pd.read_excel(archivo_excel)
-        # Verificar si el nombre del producto ya existe (sin importar mayúsculas)
         if str(nombre_producto).lower() in df_existente['Nombre Producto'].str.lower().values:
             confirmacion = tk.messagebox.askyesno("Confirmación", f"El producto '{nombre_producto}' ya existe. ¿Deseas agregarlo de todos modos?")
             if not confirmacion:
                 return
-            
-        # Agregar una nueva fila
         df_nuevo = pd.DataFrame(datos)
         df_final = pd.concat([df_existente, df_nuevo], ignore_index=True)
         df_final.to_excel(archivo_excel, index=False)
     else:
-        # Si el archivo no existe, se crea uno nuevo
         df = pd.DataFrame(datos)
         df.to_excel(archivo_excel, index=False)
 
-    # Aplicar color condicional a la columna de categoría y ajustar ancho de columnas
     aplicar_color_condicional(archivo_excel)
-
     tk.messagebox.showinfo("Éxito", "Los datos se han guardado correctamente.")
 
 def mostrar_ventana_inventario():
-    verificar_vencimientos()
-    verificar_stock_minimo()
+    alertas_vencimiento = verificar_vencimientos()
+    alertas_stock = verificar_stock_minimo()
+
+    paleta = get_paleta()
     ventana_inventario = tk.Tk()
-    ventana_inventario.title("Inventario")
-    ventana_inventario.geometry("350x370")
+    ventana_inventario.title("Drogs+ - Inventario")
+    ventana_inventario.geometry("520x620")
     ventana_inventario.resizable(False, False)
+    ventana_inventario.configure(bg=paleta["bg_principal"])
 
-    ventana_inventario.grab_set()  # Previene la interacción con ventanas anteriores
+    ventana_inventario.grab_set()
 
-    # Establecer el icono de la ventana
     icon_path = os.path.join("images", "cruz_azul.ico")
-    ventana_inventario.iconbitmap(icon_path)
+    if os.path.exists(icon_path):
+        ventana_inventario.iconbitmap(icon_path)
 
-    # Centramos la ventana
+    aplicar_estilos(ventana_inventario)
     centrar_ventana(ventana_inventario)
 
-    frame_formulario = tk.Frame(ventana_inventario)
-    frame_formulario.pack(padx=10, pady=10)
+    crear_header(ventana_inventario, "Gestión de Inventario")
 
-    # Campo para Nombre Producto
-    label_nombre = tk.Label(frame_formulario, text="Nombre Producto:")
-    label_nombre.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+    main_frame = tk.Frame(ventana_inventario, bg=paleta["bg_principal"])
+    main_frame.pack(fill="both", expand=True, padx=15, pady=10)
+
+    if alertas_vencimiento or alertas_stock:
+        alertas_frame = crear_card(main_frame, "Alertas")
+        alertas_frame.pack(fill="x", pady=(0, 10))
+        for tipo, texto in (alertas_vencimiento + alertas_stock)[:5]:
+            crear_alerta(alertas_frame, tipo, texto).pack(fill="x", padx=10, pady=2)
+
+    form_card = crear_card(main_frame, "Nuevo Producto")
+    form_card.pack(fill="x", pady=(0, 10))
+
+    form = tk.Frame(form_card, bg=paleta["bg_card"])
+    form.pack(padx=15, pady=10)
+
+    labels_config = [
+        ("Nombre:", 0), ("Identificador:", 1), ("Cantidad:", 2),
+        ("Stock Mínimo:", 3), ("Precio (COP):", 4), ("Fecha Entrega:", 5),
+        ("Fecha Vencimiento:", 6), ("Categoría:", 7), ("Unidad:", 8)
+    ]
+
+    for texto, row in labels_config:
+        crear_label(form, texto, "bold").grid(row=row, column=0, sticky="w", pady=4, padx=(0, 10))
+
     global entry_nombre
-    entry_nombre = tk.Entry(frame_formulario)
-    entry_nombre.grid(row=0, column=1, padx=5, pady=5)
-    entry_nombre.bind("<KeyRelease>", lambda event: mostrar_codigo_producto())  # Actualiza el código cuando se ingresa un nombre
+    entry_nombre = crear_entry(form, width=25)
+    entry_nombre.grid(row=0, column=1, pady=4, sticky="w")
+    entry_nombre.bind("<KeyRelease>", lambda e: mostrar_codigo_producto())
 
-    # Campo para Identificador (solo lectura)
-    label_identificador = tk.Label(frame_formulario, text="Identificador:")
-    label_identificador.grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
     global entry_identificador
-    entry_identificador = tk.Entry(frame_formulario, state="readonly")
-    entry_identificador.grid(row=1, column=1, padx=5, pady=5)
+    entry_identificador = crear_entry(form, width=25, state="readonly")
+    entry_identificador.grid(row=1, column=1, pady=4, sticky="w")
 
-    # Campo para Cantidad Producto
-    label_cantidad = tk.Label(frame_formulario, text="Cantidad Producto:")
-    label_cantidad.grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
     vcmd_entero = (ventana_inventario.register(solo_enteros), '%S')
     global entry_cantidad
-    entry_cantidad = tk.Entry(frame_formulario, validate="key", validatecommand=vcmd_entero)
-    entry_cantidad.grid(row=2, column=1, padx=5, pady=5)
+    entry_cantidad = crear_entry(form, width=25, validate="key", validatecommand=vcmd_entero)
+    entry_cantidad.grid(row=2, column=1, pady=4, sticky="w")
 
-    # Campo para Stock Mínimo
-    label_stock_min = tk.Label(frame_formulario, text="Stock Mínimo:")
-    label_stock_min.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
     global entry_stock_minimo
-    entry_stock_minimo = tk.Entry(frame_formulario, validate="key", validatecommand=vcmd_entero)
-    entry_stock_minimo.grid(row=3, column=1, padx=5, pady=5)
+    entry_stock_minimo = crear_entry(form, width=25, validate="key", validatecommand=vcmd_entero)
+    entry_stock_minimo.grid(row=3, column=1, pady=4, sticky="w")
 
-    # Campo para Precio Producto
-    label_precio = tk.Label(frame_formulario, text="Precio Producto (COP):")
-    label_precio.grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
     vcmd_real = (ventana_inventario.register(solo_reales), '%S', '%P')
     global entry_precio
-    entry_precio = tk.Entry(frame_formulario, validate="key", validatecommand=vcmd_real)
-    entry_precio.grid(row=4, column=1, padx=5, pady=5)
+    entry_precio = crear_entry(form, width=25, validate="key", validatecommand=vcmd_real)
+    entry_precio.grid(row=4, column=1, pady=4, sticky="w")
 
-    # Campo para seleccionar Fecha de Entrega
     global date_entry_entrega
-    label_fecha_entrega = tk.Label(frame_formulario, text="Fecha de Entrega:")
-    label_fecha_entrega.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
-    date_entry_entrega = DateEntry(frame_formulario, date_pattern='dd/mm/yyyy', width=16, background='darkblue',
-                                   foreground='white', borderwidth=2, state='readonly')  # Solo lectura
-    date_entry_entrega.grid(row=5, column=1, padx=5, pady=5)
+    date_entry_entrega = DateEntry(form, date_pattern='dd/mm/yyyy', width=22, background='darkblue',
+                                   foreground='white', borderwidth=2, state='readonly')
+    date_entry_entrega.grid(row=5, column=1, pady=4, sticky="w")
     date_entry_entrega.bind("<<DateEntrySelected>>", actualizar_color_categoria)
 
-    # Campo para seleccionar Fecha de Vencimiento
     global date_entry_vencimiento
-    label_fecha_vencimiento = tk.Label(frame_formulario, text="Fecha de Vencimiento:")
-    label_fecha_vencimiento.grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
-    date_entry_vencimiento = DateEntry(frame_formulario, date_pattern='dd/mm/yyyy', width=16, background='darkblue',
-                                       foreground='white', borderwidth=2, state='readonly')  # Solo lectura
-    date_entry_vencimiento.grid(row=6, column=1, padx=5, pady=5)
+    date_entry_vencimiento = DateEntry(form, date_pattern='dd/mm/yyyy', width=22, background='darkblue',
+                                       foreground='white', borderwidth=2, state='readonly')
+    date_entry_vencimiento.grid(row=6, column=1, pady=4, sticky="w")
     date_entry_vencimiento.bind("<<DateEntrySelected>>", actualizar_color_categoria)
 
-    # Rectángulo para la categoría
-    label_categoria = tk.Label(frame_formulario, text="Categoria:")
-    label_categoria.grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
     global canvas_categoria
-    canvas_categoria = tk.Canvas(frame_formulario, width=120, height=15, bg="white")
-    canvas_categoria.grid(row=7, column=1, padx=5, pady=5)
-
-    # Inicializar el color del rectángulo al cargar la ventana
+    canvas_categoria = tk.Canvas(form, width=120, height=20, bg=paleta["alerta_verde"], highlightthickness=1,
+                                  highlightbackground=paleta["borde"])
+    canvas_categoria.grid(row=7, column=1, pady=4, sticky="w")
     actualizar_color_categoria()
 
-    # Campo para Unidad de Venta
-    label_unidad = tk.Label(frame_formulario, text="Unidad de Venta:")
-    label_unidad.grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
     global entry_unidad
-    entry_unidad = tk.Entry(frame_formulario)
-    entry_unidad.grid(row=8, column=1, padx=5, pady=5)
+    entry_unidad = crear_entry(form, width=25)
+    entry_unidad.grid(row=8, column=1, pady=4, sticky="w")
     entry_unidad.insert(0, "Unidad")
 
-    # Botón para volver
-    boton_volver = tk.Button(ventana_inventario, text="Volver al menú", command=lambda: volver_al_menu(ventana_inventario))
-    boton_volver.pack(side=tk.LEFT, padx=10, pady=10)
+    btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    btn_frame.pack(fill="x", pady=5)
 
-    # Botón para guardar datos
-    boton_guardar = tk.Button(ventana_inventario, text="Guardar", command=guardar_datos)
-    boton_guardar.pack(side=tk.RIGHT, padx=10, pady=10)
+    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_inventario), "Secundario").pack(side="left")
+    crear_boton(btn_frame, "🔍 Buscar", mostrar_ventana_editar, "Secundario").pack(side="left", padx=10)
+    crear_boton(btn_frame, "💾 Guardar", guardar_datos, "Exito").pack(side="right")
 
-    boton_buscar = tk.Button(ventana_inventario, text="Buscar", command=mostrar_ventana_editar)
-    boton_buscar.pack(side=tk.RIGHT, padx=10, pady=10)
-
+    entry_nombre.focus_set()
     ventana_inventario.mainloop()
