@@ -214,7 +214,7 @@ def mostrar_ventana_ventas():
 
     ventana_ventas = tk.Tk()
     ventana_ventas.title("Drogs+ - Punto de Venta")
-    ventana_ventas.geometry("450x480")
+    ventana_ventas.geometry("450x530")
     ventana_ventas.resizable(False, False)
     ventana_ventas.configure(bg=paleta["bg_principal"])
 

@@ -209,11 +209,9 @@ def mostrar_ventana_inventario():
     paleta = get_paleta()
     ventana_inventario = tk.Tk()
     ventana_inventario.title("Drogs+ - Inventario")
-    ventana_inventario.geometry("520x620")
-    ventana_inventario.resizable(False, False)
+    ventana_inventario.geometry("520x650")
+    ventana_inventario.resizable(False, True)
     ventana_inventario.configure(bg=paleta["bg_principal"])
-
-    ventana_inventario.grab_set()
 
     icon_path = os.path.join("images", "cruz_azul.ico")
     if os.path.exists(icon_path):
@@ -224,7 +222,30 @@ def mostrar_ventana_inventario():
 
     crear_header(ventana_inventario, "Gestión de Inventario")
 
-    main_frame = tk.Frame(ventana_inventario, bg=paleta["bg_principal"])
+    canvas = tk.Canvas(ventana_inventario, bg=paleta["bg_principal"], highlightthickness=0)
+    scrollbar = tk.Scrollbar(ventana_inventario, orient="vertical", command=canvas.yview)
+    scroll_frame = tk.Frame(canvas, bg=paleta["bg_principal"])
+
+    scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+    canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def _bind_wheel(event):
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+    def _unbind_wheel(event):
+        canvas.unbind_all("<MouseWheel>")
+
+    canvas.bind("<Enter>", _bind_wheel)
+    canvas.bind("<Leave>", _unbind_wheel)
+
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+    main_frame = tk.Frame(scroll_frame, bg=paleta["bg_principal"])
     main_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
     if alertas_vencimiento or alertas_stock:
