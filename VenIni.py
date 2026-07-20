@@ -2,14 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import os
-
-def centrar_ventana(ventana):
-    ventana.update_idletasks()
-    width = ventana.winfo_width()
-    height = ventana.winfo_height()
-    x = (ventana.winfo_screenwidth() // 2) - (width // 2)
-    y = (ventana.winfo_screenheight() // 2) - (height // 2)
-    ventana.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+from utils import centrar_ventana
+import VenMenu
 
 def crear_ventana():
     ventana = tk.Tk()
@@ -30,14 +24,7 @@ def cargar_imagen():
     return photo
 
 def acceder(serial, ventana):
-    # Aquí puedes hacer algo con el serial, como verificarlo o procesarlo
-    print("Serial ingresado:", serial)
-
-    # Cerrar la ventana actual
     ventana.destroy()
-
-    # Importar y mostrar la nueva ventana
-    import VenMenu
     VenMenu.mostrar_ventana_menu()
 
 def mostrar_ventana():

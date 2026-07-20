@@ -3,14 +3,7 @@ import pandas as pd
 import os
 from tkinter import filedialog, messagebox
 from fpdf import FPDF
-
-def centrar_ventana(ventana):
-    ventana.update_idletasks()
-    width = ventana.winfo_width()
-    height = ventana.winfo_height()
-    x = (ventana.winfo_screenwidth() // 2) - (width // 2)
-    y = (ventana.winfo_screenheight() // 2) - (height // 2)
-    ventana.geometry(f'{width}x{height}+{x}+{y}')
+from utils import centrar_ventana
 
 def volver_al_menu(ventana):
     ventana.destroy()
@@ -93,7 +86,7 @@ rows_per_page = 20
 
 # Definir frame_tabla y datos_filtrados como variables globales
 def mostrar_ventana_registro():
-    global frame_tabla, datos_filtrados, datos, current_page, datos
+    global frame_tabla, datos_filtrados, datos, current_page
     
     ventana_registro = tk.Tk()
     ventana_registro.title("Registro")

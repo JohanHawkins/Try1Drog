@@ -7,21 +7,10 @@ import os
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from tkinter import ttk, messagebox
-from Inventario.Editar_Producto import mostrar_ventana_editar  # Importa la función
+from Inventario.Editar_Producto import mostrar_ventana_editar
 import random
 import string
-
-ventana_editar_abierta = False
-# Simulamos una lista de productos almacenados (puedes reemplazar esto con la base de datos real o almacenamiento)
-productos_guardados = []
-
-def centrar_ventana(ventana):
-    ventana.update_idletasks()
-    width = ventana.winfo_width()
-    height = ventana.winfo_height()
-    x = (ventana.winfo_screenwidth() // 2) - (width // 2)
-    y = (ventana.winfo_screenheight() // 2) - (height // 2)
-    ventana.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+from utils import centrar_ventana
 
 def volver_al_menu(ventana):
     ventana.destroy()
@@ -53,10 +42,6 @@ def actualizar_color_categoria(event=None):
         canvas_categoria.config(bg="yellow")
     else:
         canvas_categoria.config(bg="red")
-
-def formato_pesos(valor):
-    """Formatea el valor en formato de Pesos Colombianos (COP)."""
-    return f"${float(valor):,.2f} COP"
 
 def ajustar_ancho_columnas(ws):
     """Ajusta el ancho de las columnas según el contenido más largo."""
@@ -93,11 +78,7 @@ def aplicar_color_condicional(archivo_excel):
     wb.save(archivo_excel)
 
 def generar_codigo_unico():
-    """Genera un código alfanumérico de 6 caracteres (a-z, 0-9)."""
-    while True:
-        codigo = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-        if not any(producto['codigo'] == codigo for producto in productos_guardados):
-            return codigo
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
 
 def mostrar_codigo_producto():
     """Muestra el código alfanumérico cuando se ingresa el nombre del producto."""
@@ -172,8 +153,7 @@ def guardar_datos():
         if str(nombre_producto).lower() in df_existente['Nombre Producto'].str.lower().values:
             confirmacion = tk.messagebox.askyesno("Confirmación", f"El producto '{nombre_producto}' ya existe. ¿Deseas agregarlo de todos modos?")
             if not confirmacion:
-                print("Datos no guardados.")
-                return  # No guardar los datos si el usuario cancela
+                return
             
         # Agregar una nueva fila
         df_nuevo = pd.DataFrame(datos)
@@ -187,15 +167,9 @@ def guardar_datos():
     # Aplicar color condicional a la columna de categoría y ajustar ancho de columnas
     aplicar_color_condicional(archivo_excel)
 
-    print("Datos guardados correctamente")
     tk.messagebox.showinfo("Éxito", "Los datos se han guardado correctamente.")
 
 def mostrar_ventana_inventario():
-    global ventana_editar_abierta
-    if ventana_editar_abierta:
-        messagebox.showwarning("Advertencia", "La ventana de edición ya está abierta.")
-        return
-
     ventana_inventario = tk.Tk()
     ventana_inventario.title("Inventario")
     ventana_inventario.geometry("350x300")
@@ -280,8 +254,7 @@ def mostrar_ventana_inventario():
     boton_guardar = tk.Button(ventana_inventario, text="Guardar", command=guardar_datos)
     boton_guardar.pack(side=tk.RIGHT, padx=10, pady=10)
 
-    # Botón para editar datos (sin funcionalidad aún)
-    boton_buscar = tk.Button(ventana_inventario, text="Buscar", command=mostrar_ventana_editar)  # Llama a la función mostrar_ventana_editar
+    boton_buscar = tk.Button(ventana_inventario, text="Buscar", command=mostrar_ventana_editar)
     boton_buscar.pack(side=tk.RIGHT, padx=10, pady=10)
 
     ventana_inventario.mainloop()

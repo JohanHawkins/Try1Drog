@@ -154,10 +154,5 @@ def cerrar_ventana(ventana):
 
 def cerrar_ventana_resultados(ventana):
     global ventana_resultados_abierta
-    ventana.destroy()  # Cierra la ventana de resultados
-    ventana_resultados_abierta = False  # Marca la ventana de resultados como cerrada
-
-# Ejecutar la ventana solo cuando se desee abrirla
-if __name__ == "__main__":
-    # Espera hasta que se ejecute la función para abrir la ventana
-    pass
+    ventana.destroy()
+    ventana_resultados_abierta = False

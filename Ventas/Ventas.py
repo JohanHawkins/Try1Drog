@@ -3,17 +3,9 @@ import os
 import pandas as pd
 from tkinter import messagebox
 from datetime import datetime
+from utils import centrar_ventana
 
-indices_sugerencias = []
-ventana_confirmacion = None  # Variable global para la ventana de confirmación
-
-def centrar_ventana(ventana):
-    ventana.update_idletasks()
-    width = ventana.winfo_width()
-    height = ventana.winfo_height()
-    x = (ventana.winfo_screenwidth() // 2) - (width // 2)
-    y = (ventana.winfo_screenheight() // 2) - (height // 2)
-    ventana.geometry(f'{width}x{height}+{x}+{y}')
+ventana_confirmacion = None
 
 def volver_al_menu(ventana):
     ventana.destroy()
@@ -29,7 +21,6 @@ def cargar_productos():
         df = pd.read_excel("Inventario/inventario_productos.xlsx")
         return df[["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria", "Fecha Vencimiento"]].dropna()
     except Exception as e:
-        print(f"Error al cargar el archivo: {e}")
         return pd.DataFrame(columns=["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria", "Fecha Vencimiento"])
 
 def actualizar_sugerencias(event):
@@ -99,7 +90,7 @@ def actualizar_stock_y_precio(nombre_producto):
             entry_precio.insert(0, f"${precio_numerico:,.2f} COP")
             entry_precio.config(state="readonly")
         except ValueError:
-            print("Error: El precio no está en un formato numérico válido.")
+            pass
 
 def calcular_total(event=None):
     try:
