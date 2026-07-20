@@ -97,3 +97,129 @@ VISIÓN:
 Interfaz sumamente intuitiva que no requiera capacitación compleja,
 permitiendo al personal de farmacia enfocarse en lo que importa:
 atender bien al paciente.
+
+================================================================
+ANÁLISIS DEL PROYECTO - 19/07/2026
+================================================================
+
+BUGS Y ERRORES:
+
+1. Registro.py (L241-246) - CRÍTICO
+   eliminar_registro() vacía datos_filtrados pero nunca actualiza datos (el original).
+   Luego escribe un DataFrame vacío al Excel, borrando TODO el archivo de registros.
+
+2. Registro.py (L246)
+   Si se confirma la eliminación, se guarda un Excel vacío porque datos_filtrados
+   se vació en línea 241, pero nunca se filtra contra datos original.
+
+3. Inventario/Inventario.py (L114)
+   float(entry_precio.get()) sin try-except: si el campo está vacío lanza ValueError y crashea.
+
+4. Inventario/Editar_Producto.py (L108)
+   tree.selection()[0] lanza IndexError si el usuario hace doble clic sin tener un item seleccionado.
+
+5. VenMenu.py (L48)
+   ventana_menu.winfo_width() se ejecuta antes de mainloop(), retorna 1 -> button_width siempre es negativo.
+
+6. Ventas/Ventas.py (L159)
+   realizar_compra(ventana_confirmacion) recibe parámetro pero nunca lo usa;
+   el parámetro sombrea la variable global.
+
+7. VenIni.py (L68)
+   mostrar_ventana() se ejecuta al nivel del módulo — si algo importa VenIni, se abre la ventana automáticamente.
+
+IRREGULARIDADES Y PUNTOS DÉBILES:
+
+1. Inventario/Inventario.py (L14-16)
+   ventana_editar_abierta y productos_guardados son globales nunca modificados — no sirven.
+
+2. Inventario/Inventario.py (L176-178)
+   Chequea ventana_editar_abierta (siempre False) — la flag real está en Editar_Producto.py.
+
+3. Inventario/Inventario.py (L201-250)
+   Abuso de global para widgets — frágil y dificulta mantenimiento.
+
+4. Inventario/Inventario.py (L69)
+   except: sin tipo específico — oculta errores silenciosamente.
+
+5. VenMenu.py (L8)
+   geometry("300x500") se configura pero se sobreescribe inmediatamente con "300x200" en línea 38.
+
+6. Registro.py (L92, 183, 198)
+   Triple declaración de global datos_filtrados en la misma función.
+
+7. Ventas/Ventas.py (L102)
+   Error de precio solo hace print() — el usuario nunca ve el error.
+
+8. Proyecto general
+   centrar_ventana() está duplicada en 4 archivos (VenIni, Inventario, Ventas, Registro).
+
+9. Proyecto general
+   Las imports de módulos están dentro de funciones (patrón frágil, dificulta testing).
+
+10. Proyecto general
+    No hay manejo de excepciones al leer archivos Excel (solo en algunos módulos).
+
+11. Inventario/Editar_Producto.py (L157-160)
+    Bloque if __name__ == "__main__": pass es código muerto.
+
+CÓDIGO NO UTIL (retirable sin afectar funcionamiento):
+
+1. VenIni.py (L33-34) - print("Serial ingresado:", serial) - Debug print.
+2. VenMenu.py (L8) - geometry("300x500") - Se sobreescribe en línea 38.
+3. VenMenu.py (L47) - button_width - Nunca se usa (botones no tienen width=).
+4. Inventario/Inventario.py (L14) - ventana_editar_abierta = False - Nunca se modifica.
+5. Inventario/Inventario.py (L16) - productos_guardados = [] - Nunca se usa.
+6. Inventario/Inventario.py (L157) - print("Datos no guardados.") - Debug print.
+7. Inventario/Inventario.py (L172) - print("Datos guardados correctamente") - Debug print.
+8. Inventario/Inventario.py (L265) - Comentario # sin funcionalidad aún - Ya tiene funcionalidad.
+9. Ventas/Ventas.py (L7) - indices_sugerencias = [] - Variable global redundante.
+10. Ventas/Ventas.py (L32) - print(f"Error al cargar el archivo: {e}") - Debug print.
+11. Ventas/Ventas.py (L102) - print("Error: El precio no está...") - Debug print.
+12. Editar_Producto.py (L7) - ventana_resultados_abierta = False - Nunca se usa.
+13. Editar_Producto.py (L157-160) - if __name__ == "__main__": pass - Código muerto.
+14. Registro.py (L239) - Comentario obsoleto sobre eliminación.
+
+FALTANTES SEGÚN IDEAS.TXT (líneas 68-99):
+
+1. Ventas fraccionadas (pastillas, unidades, cajas) - No implementado.
+2. Métodos de pago integrados - No implementado.
+3. Facturación electrónica - No implementado.
+4. Alertas automáticas de caducidad (30, 60, 90 días) - No implementado.
+5. Niveles mínimos de stock con notificación - No implementado.
+6. Código de barras y lote por producto - No implementado.
+7. Registro de recetas / cumplimiento regulatorio - No implementado.
+8. Base de datos de pacientes/clientes - No implementado.
+9. Historial de compras por cliente - No implementado.
+10. Recordatorios de recompra - No implementado.
+11. Reportes analíticos / Dashboard - No implementado.
+12. Eliminar producto del inventario - No implementado (solo agregar/editar).
+
+================================================================
+LISTADO DE PRIORIDADES
+================================================================
+
+PRIORIDAD ALTA - Bugs críticos:
+
+1. Corregir eliminar_registro() en Registro.py — Actualmente borra TODO el Excel.
+   Debe eliminar solo el registro seleccionado de datos y re-guardar.
+2. Validar campos vacíos en Inventario.py antes de float() (L114) — Crashea si el precio está vacío.
+3. Proteger tree.selection()[0] en Editar_Producto.py (L108) — Crashea si no hay selección.
+4. Agregar validación de campos vacíos en guardar_datos() de Inventario.py — No valida nombre, cantidad y precio.
+
+PRIORIDAD MEDIA - Código muerto y mejoras:
+
+5. Eliminar todo el código muerto listado arriba (prints debug, variables globales inútiles, geometry duplicada, etc.)
+6. Eliminar productos_guardados y ventana_editar_abierta de Inventario.py — no se usan.
+7. Unificar centrar_ventana() — Crear utils.py con la función y reutilizar en todos los archivos.
+8. Eliminar imports dentro de funciones — Mover imports al inicio de cada archivo.
+9. Eliminar el bloque if __name__ muerto de Editar_Producto.py.
+
+PRIORIDAD BAJA - Funcionalidades nuevas:
+
+10. Eliminar producto del inventario — Módulo Editar_Producto solo permite editar, no borrar.
+11. Alertas de vencimiento — Notificación al abrir inventario de productos próximos a vencer.
+12. Niveles mínimos de stock — Alerta cuando un producto cae por debajo de un umbral.
+13. Ventas fraccionadas — Permitir vender por unidad, caja, etc.
+14. Base de datos de clientes — Nuevo módulo de fidelización.
+15. Reportes analíticos — Dashboard con productos más/menos vendidos.
