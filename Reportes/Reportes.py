@@ -30,8 +30,8 @@ def mostrar_ventana_reportes():
 
     ventana = tk.Tk()
     ventana.title("Drogs+ - Reportes y Analítica")
-    ventana.geometry("700x520")
-    ventana.resizable(False, False)
+    ventana.resizable(True, True)
+    ventana.minsize(500, 350)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -120,5 +120,11 @@ def mostrar_ventana_reportes():
     btn_frame.pack(fill="x")
 
     crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana), "Secundario").pack(side="left")
+
+    ventana.update_idletasks()
+    w = ventana.winfo_reqwidth()
+    h = ventana.winfo_reqheight()
+    ventana.geometry(f"{w}x{h}")
+    centrar_ventana(ventana)
 
     ventana.mainloop()

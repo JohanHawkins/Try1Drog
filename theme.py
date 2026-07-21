@@ -1,12 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-import json
-import os
 
-MODO_OSCURO = False
-ARCHIVO_CONFIG = os.path.join(".opencode", "theme_config.json")
-
-PALETA_CLARA = {
+PALETA = {
     "bg_principal": "#F5F7FA",
     "bg_frame": "#FFFFFF",
     "bg_header": "#1B3A5C",
@@ -27,71 +22,20 @@ PALETA_CLARA = {
     "texto_secundario": "#5A6A7A",
     "texto_blanco": "#FFFFFF",
     "texto_boton": "#FFFFFF",
-    "texto链接": "#2980B9",
     "borde": "#D1D9E6",
     "borde_foco": "#2980B9",
     "alerta_rojo": "#E74C3C",
     "alerta_amarillo": "#F1C40F",
     "alerta_verde": "#27AE60",
+    "alerta_azul": "#2980B9",
     "alerta_rojo_bg": "#FDEDEC",
     "alerta_amarillo_bg": "#FEF9E7",
     "alerta_verde_bg": "#EAFAF1",
     "sombra": "#00000010",
 }
 
-PALETA_OSCURA = {
-    "bg_principal": "#0D1117",
-    "bg_frame": "#161B22",
-    "bg_header": "#0D1117",
-    "bg_sidebar": "#161B22",
-    "bg_input": "#0D1117",
-    "bg_boton_primario": "#238636",
-    "bg_boton_secundario": "#1F6FEB",
-    "bg_boton_peligro": "#DA3633",
-    "bg_boton_exito": "#238636",
-    "bg_boton_advertencia": "#9E6A03",
-    "bg_card": "#161B22",
-    "bg_seleccion": "#1F6FEB22",
-    "bg_tabla_encabezado": "#21262D",
-    "bg_tabla_fila_par": "#0D1117",
-    "bg_tabla_fila_impar": "#161B22",
-    "bg_tabla_hover": "#1F6FEB22",
-    "texto_principal": "#C9D1D9",
-    "texto_secundario": "#8B949E",
-    "texto_blanco": "#FFFFFF",
-    "texto_boton": "#FFFFFF",
-    "texto链接": "#58A6FF",
-    "borde": "#30363D",
-    "borde_foco": "#1F6FEB",
-    "alerta_rojo": "#F85149",
-    "alerta_amarillo": "#D29922",
-    "alerta_verde": "#3FB950",
-    "alerta_rojo_bg": "#F8514915",
-    "alerta_amarillo_bg": "#D2992215",
-    "alerta_verde_bg": "#3FB95015",
-    "sombra": "#00000040",
-}
-
 def get_paleta():
-    return PALETA_OSCURA if MODO_OSCURO else PALETA_CLARA
-
-def toggle_modo_oscuro():
-    global MODO_OSCURO
-    MODO_OSCURO = not MODO_OSCURO
-    guardar_config()
-    return MODO_OSCURO
-
-def guardar_config():
-    os.makedirs(".opencode", exist_ok=True)
-    with open(ARCHIVO_CONFIG, "w") as f:
-        json.dump({"modo_oscuro": MODO_OSCURO}, f)
-
-def cargar_config():
-    global MODO_OSCURO
-    if os.path.exists(ARCHIVO_CONFIG):
-        with open(ARCHIVO_CONFIG, "r") as f:
-            config = json.load(f)
-            MODO_OSCURO = config.get("modo_oscuro", False)
+    return PALETA
 
 def aplicar_estilos(ventana):
     paleta = get_paleta()
@@ -166,12 +110,6 @@ def crear_header(parent, texto, paleta=None):
     header.pack_propagate(False)
     tk.Label(header, text=texto, font=("Segoe UI", 18, "bold"),
              fg=paleta["texto_blanco"], bg=paleta["bg_header"]).pack(side="left", padx=20, pady=15)
-
-    btn_modo = tk.Button(header, text="🌙" if not MODO_OSCURO else "☀️",
-                         font=("Segoe UI", 14), bg=paleta["bg_header"],
-                         fg=paleta["texto_blanco"], bd=0, cursor="hand2",
-                         command=lambda: toggle_modo_oscuro())
-    btn_modo.pack(side="right", padx=20)
     return header
 
 def crear_card(parent, titulo, paleta=None):
@@ -181,17 +119,23 @@ def crear_card(parent, titulo, paleta=None):
                      highlightbackground=paleta["borde"], highlightthickness=1)
     if titulo:
         tk.Label(card, text=titulo, font=("Segoe UI", 11, "bold"),
-                 fg=paleta["texto_principal"], bg=paleta["bg_card"]).pack(anchor="w", padx=15, pady=(10, 5))
+                 fg=paleta["texto_principal"], bg=paleta["bg_card"]).pack(anchor="w", padx=15, pady=(6, 2))
     return card
 
-def crear_boton(parent, texto, comando, estilo="Primario", **kwargs):
+def crear_boton(parent, texto, comando, estilo="Primario", tamaño="normal", **kwargs):
     paleta = get_paleta()
+    if tamaño == "pequeño":
+        font = ("Segoe UI", 9)
+        px, py = 10, 5
+    else:
+        font = ("Segoe UI", 10, "bold")
+        px, py = 15, 8
     btn = tk.Button(parent, text=texto, command=comando,
-                     font=("Segoe UI", 10, "bold"), fg=paleta["texto_boton"],
+                     font=font, fg=paleta["texto_boton"],
                      bg=paleta.get(f"bg_boton_{estilo.lower()}", paleta["bg_boton_primario"]),
                      activebackground=paleta["bg_boton_secundario"],
                      activeforeground=paleta["texto_blanco"],
-                     bd=0, padx=15, pady=8, cursor="hand2", **kwargs)
+                     bd=0, padx=px, pady=py, cursor="hand2", **kwargs)
     return btn
 
 def crear_entry(parent, **kwargs):
@@ -248,5 +192,3 @@ def crear_treeview(parent, columns, paleta=None):
     tree.tag_configure("evenrow", background=paleta["bg_tabla_fila_par"])
     tree.tag_configure("oddrow", background=paleta["bg_tabla_fila_impar"])
     return tree
-
-cargar_config()

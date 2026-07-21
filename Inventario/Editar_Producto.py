@@ -21,8 +21,8 @@ def mostrar_ventana_editar():
 
     ventana_editar = tk.Toplevel()
     ventana_editar.title("Drogs+ - Buscar Producto")
-    ventana_editar.geometry("350x180")
-    ventana_editar.resizable(False, False)
+    ventana_editar.resizable(True, True)
+    ventana_editar.minsize(300, 150)
     ventana_editar.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -63,6 +63,11 @@ def mostrar_ventana_editar():
     btn_frame.pack(fill="x", pady=(10, 0))
     crear_boton(btn_frame, "Cerrar", lambda: cerrar_ventana(ventana_editar), "Secundario").pack(side="right")
 
+    ventana_editar.update_idletasks()
+    w = ventana_editar.winfo_reqwidth()
+    h = ventana_editar.winfo_reqheight()
+    ventana_editar.geometry(f"{w}x{h}")
+
     ventana_editar.protocol("WM_DELETE_WINDOW", lambda: cerrar_ventana(ventana_editar))
 
 def mostrar_resultados(resultados):
@@ -77,7 +82,8 @@ def mostrar_resultados(resultados):
 
     ventana_resultados = tk.Toplevel()
     ventana_resultados.title("Drogs+ - Resultados de Búsqueda")
-    ventana_resultados.geometry("850x450")
+    ventana_resultados.resizable(True, True)
+    ventana_resultados.minsize(600, 300)
     ventana_resultados.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -178,6 +184,11 @@ def mostrar_resultados(resultados):
     crear_boton(btn_frame, "← Cerrar", lambda: cerrar_ventana_resultados(ventana_resultados), "Secundario").pack(side="left")
     crear_boton(btn_frame, "🗑️ Eliminar", eliminar_producto, "Peligro").pack(side="left", padx=10)
     crear_boton(btn_frame, "💾 Guardar Cambios", guardar_todos_los_cambios, "Exito").pack(side="right")
+
+    ventana_resultados.update_idletasks()
+    w = ventana_resultados.winfo_reqwidth()
+    h = ventana_resultados.winfo_reqheight()
+    ventana_resultados.geometry(f"{w}x{h}")
 
 def cerrar_ventana(ventana):
     global ventana_editar_abierta

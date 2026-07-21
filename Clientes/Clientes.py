@@ -27,8 +27,8 @@ def mostrar_ventana_clientes():
 
     ventana = tk.Tk()
     ventana.title("Drogs+ - Gestión de Clientes")
-    ventana.geometry("700x500")
-    ventana.resizable(False, False)
+    ventana.resizable(True, True)
+    ventana.minsize(500, 350)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -138,4 +138,9 @@ def mostrar_ventana_clientes():
     crear_boton(btn_frame, "Limpiar", limpiar_campos, "Secundario").pack(side="right", padx=(0, 10))
 
     cargar_tabla()
+    ventana.update_idletasks()
+    w = ventana.winfo_reqwidth()
+    h = ventana.winfo_reqheight()
+    ventana.geometry(f"{w}x{h}")
+    centrar_ventana(ventana)
     ventana.mainloop()

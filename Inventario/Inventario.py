@@ -12,7 +12,7 @@ import random
 import string
 from utils import centrar_ventana
 from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
-                    crear_entry, crear_label, crear_card, crear_alerta)
+                    crear_entry, crear_label, crear_card, crear_alerta, crear_treeview)
 
 def verificar_vencimientos():
     archivo_excel = os.path.join("Inventario", "inventario_productos.xlsx")
@@ -87,10 +87,13 @@ def actualizar_color_categoria(event=None):
     diferencia_meses = calcular_diferencia_meses(fecha_entrega, fecha_vencimiento)
     if diferencia_meses > 12:
         canvas_categoria.config(bg=paleta["alerta_verde"])
+        label_categoria_texto.config(text="> 12 meses", fg=paleta["alerta_verde"])
     elif 6 <= diferencia_meses <= 12:
         canvas_categoria.config(bg=paleta["alerta_amarillo"])
+        label_categoria_texto.config(text="6-12 meses", fg=paleta["alerta_amarillo"])
     else:
         canvas_categoria.config(bg=paleta["alerta_rojo"])
+        label_categoria_texto.config(text="< 6 meses", fg=paleta["alerta_rojo"])
 
 def ajustar_ancho_columnas(ws):
     for column_cells in ws.columns:
@@ -202,6 +205,86 @@ def guardar_datos():
     aplicar_color_condicional(archivo_excel)
     tk.messagebox.showinfo("Éxito", "Los datos se han guardado correctamente.")
 
+def eliminar_producto():
+    paleta = get_paleta()
+    archivo = os.path.join("Inventario", "inventario_productos.xlsx")
+    if not os.path.exists(archivo):
+        messagebox.showwarning("Advertencia", "No hay inventario registrado.")
+        return
+
+    ventana_eliminar = tk.Toplevel()
+    ventana_eliminar.title("Drogs+ - Eliminar Producto")
+    ventana_eliminar.resizable(True, True)
+    ventana_eliminar.minsize(500, 300)
+    ventana_eliminar.configure(bg=paleta["bg_principal"])
+
+    icon_path = os.path.join("images", "cruz_azul.ico")
+    if os.path.exists(icon_path):
+        ventana_eliminar.iconbitmap(icon_path)
+
+    aplicar_estilos(ventana_eliminar)
+
+    crear_header(ventana_eliminar, "Eliminar Producto")
+
+    body = tk.Frame(ventana_eliminar, bg=paleta["bg_principal"])
+    body.pack(fill="both", expand=True, padx=20, pady=10)
+
+    search_card = crear_card(body, "Buscar Producto")
+    search_card.pack(fill="x", pady=(0, 10))
+    search_inner = tk.Frame(search_card, bg=paleta["bg_card"])
+    search_inner.pack(fill="x", padx=15, pady=(0, 10))
+
+    entry_buscar = crear_entry(search_inner, width=35)
+    entry_buscar.pack(side="left", padx=(0, 10))
+    entry_buscar.focus_set()
+
+    columnas = ["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria"]
+    tree = crear_treeview(body, columnas)
+    tree.pack(fill="both", expand=True, pady=(0, 10))
+
+    def cargar_productos(texto=""):
+        for item in tree.get_children():
+            tree.delete(item)
+        df = pd.read_excel(archivo)
+        if texto:
+            df = df[df['Nombre Producto'].str.contains(texto, case=False, na=False)]
+        for i, (_, row) in enumerate(df.iterrows()):
+            tag = "evenrow" if i % 2 == 0 else "oddrow"
+            tree.insert("", "end", values=[row.get(c, "") for c in columnas], tags=(tag,))
+
+    def buscar():
+        cargar_productos(entry_buscar.get().strip())
+
+    def eliminar_seleccion():
+        seleccion = tree.selection()
+        if not seleccion:
+            messagebox.showwarning("Advertencia", "Seleccione un producto para eliminar.")
+            return
+        if not messagebox.askyesno("Confirmar", f"¿Eliminar {len(seleccion)} producto(s)?"):
+            return
+        df = pd.read_excel(archivo)
+        for item in seleccion:
+            nombre = tree.item(item, "values")[0]
+            df = df[df["Nombre Producto"] != nombre]
+        df.to_excel(archivo, index=False)
+        messagebox.showinfo("Éxito", "Productos eliminados correctamente.")
+        cargar_productos(entry_buscar.get().strip())
+
+    entry_buscar.bind("<Return>", lambda e: buscar())
+
+    btn_frame = tk.Frame(body, bg=paleta["bg_principal"])
+    btn_frame.pack(fill="x")
+    crear_boton(btn_frame, "← Cerrar", ventana_eliminar.destroy, "Secundario", "pequeño").pack(side="left")
+    crear_boton(btn_frame, "🔍 Buscar", buscar, "Primario", "pequeño").pack(side="left", padx=10)
+    crear_boton(btn_frame, "🗑 Eliminar", eliminar_seleccion, "Peligro", "pequeño").pack(side="right")
+
+    cargar_productos()
+    ventana_eliminar.update_idletasks()
+    w = ventana_eliminar.winfo_reqwidth()
+    h = ventana_eliminar.winfo_reqheight()
+    ventana_eliminar.geometry(f"{w}x{h}")
+    centrar_ventana(ventana_eliminar)
+
 def mostrar_ventana_inventario():
     alertas_vencimiento = verificar_vencimientos()
     alertas_stock = verificar_stock_minimo()
@@ -209,8 +292,8 @@ def mostrar_ventana_inventario():
     paleta = get_paleta()
     ventana_inventario = tk.Tk()
     ventana_inventario.title("Drogs+ - Inventario")
-    ventana_inventario.geometry("520x650")
-    ventana_inventario.resizable(False, True)
+    ventana_inventario.resizable(True, True)
+    ventana_inventario.minsize(480, 450)
     ventana_inventario.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -222,105 +305,113 @@ def mostrar_ventana_inventario():
 
     crear_header(ventana_inventario, "Gestión de Inventario")
 
-    canvas = tk.Canvas(ventana_inventario, bg=paleta["bg_principal"], highlightthickness=0)
-    scrollbar = tk.Scrollbar(ventana_inventario, orient="vertical", command=canvas.yview)
-    scroll_frame = tk.Frame(canvas, bg=paleta["bg_principal"])
+    main_frame = tk.Frame(ventana_inventario, bg=paleta["bg_principal"])
+    main_frame.pack(fill="both", expand=True, padx=25, pady=12)
 
-    scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-    canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
+    prod_card = crear_card(main_frame, "Producto")
+    prod_card.pack(fill="x", pady=(0, 14))
+    prod_inner = tk.Frame(prod_card, bg=paleta["bg_card"])
+    prod_inner.pack(fill="x", padx=15, pady=(0, 16))
 
-    def _on_mousewheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    vcmd_entero = (ventana_inventario.register(solo_enteros), '%S')
+    vcmd_real = (ventana_inventario.register(solo_reales), '%S', '%P')
 
-    def _bind_wheel(event):
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
-    def _unbind_wheel(event):
-        canvas.unbind_all("<MouseWheel>")
-
-    canvas.bind("<Enter>", _bind_wheel)
-    canvas.bind("<Leave>", _unbind_wheel)
-
-    canvas.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="right", fill="y")
-
-    main_frame = tk.Frame(scroll_frame, bg=paleta["bg_principal"])
-    main_frame.pack(fill="both", expand=True, padx=15, pady=10)
-
-    if alertas_vencimiento or alertas_stock:
-        alertas_frame = crear_card(main_frame, "Alertas")
-        alertas_frame.pack(fill="x", pady=(0, 10))
-        for tipo, texto in (alertas_vencimiento + alertas_stock)[:5]:
-            crear_alerta(alertas_frame, tipo, texto).pack(fill="x", padx=10, pady=2)
-
-    form_card = crear_card(main_frame, "Nuevo Producto")
-    form_card.pack(fill="x", pady=(0, 10))
-
-    form = tk.Frame(form_card, bg=paleta["bg_card"])
-    form.pack(padx=15, pady=10)
-
-    labels_config = [
-        ("Nombre:", 0), ("Identificador:", 1), ("Cantidad:", 2),
-        ("Stock Mínimo:", 3), ("Precio (COP):", 4), ("Fecha Entrega:", 5),
-        ("Fecha Vencimiento:", 6), ("Categoría:", 7), ("Unidad:", 8)
+    campos = [
+        ("Nombre:", 0, 0), ("Identificador:", 0, 2),
+        ("Cantidad:", 1, 0), ("Stock Mínimo:", 1, 2),
+        ("Precio (COP):", 2, 0), ("Unidad:", 2, 2),
     ]
-
-    for texto, row in labels_config:
-        crear_label(form, texto, "bold").grid(row=row, column=0, sticky="w", pady=4, padx=(0, 10))
+    for texto, fila, col in campos:
+        crear_label(prod_inner, texto, "bold").grid(row=fila, column=col, sticky="e", padx=(0, 6), pady=6)
 
     global entry_nombre
-    entry_nombre = crear_entry(form, width=25)
-    entry_nombre.grid(row=0, column=1, pady=4, sticky="w")
+    entry_nombre = crear_entry(prod_inner, width=22)
+    entry_nombre.grid(row=0, column=1, sticky="w", padx=(0, 15), pady=6)
     entry_nombre.bind("<KeyRelease>", lambda e: mostrar_codigo_producto())
 
     global entry_identificador
-    entry_identificador = crear_entry(form, width=25, state="readonly")
-    entry_identificador.grid(row=1, column=1, pady=4, sticky="w")
+    entry_identificador = crear_entry(prod_inner, width=12, state="readonly")
+    entry_identificador.grid(row=0, column=3, sticky="w", pady=6)
 
-    vcmd_entero = (ventana_inventario.register(solo_enteros), '%S')
     global entry_cantidad
-    entry_cantidad = crear_entry(form, width=25, validate="key", validatecommand=vcmd_entero)
-    entry_cantidad.grid(row=2, column=1, pady=4, sticky="w")
+    entry_cantidad = crear_entry(prod_inner, width=10, validate="key", validatecommand=vcmd_entero)
+    entry_cantidad.grid(row=1, column=1, sticky="w", padx=(0, 15), pady=6)
 
     global entry_stock_minimo
-    entry_stock_minimo = crear_entry(form, width=25, validate="key", validatecommand=vcmd_entero)
-    entry_stock_minimo.grid(row=3, column=1, pady=4, sticky="w")
+    entry_stock_minimo = crear_entry(prod_inner, width=10, validate="key", validatecommand=vcmd_entero)
+    entry_stock_minimo.grid(row=1, column=3, sticky="w", pady=6)
 
-    vcmd_real = (ventana_inventario.register(solo_reales), '%S', '%P')
     global entry_precio
-    entry_precio = crear_entry(form, width=25, validate="key", validatecommand=vcmd_real)
-    entry_precio.grid(row=4, column=1, pady=4, sticky="w")
-
-    global date_entry_entrega
-    date_entry_entrega = DateEntry(form, date_pattern='dd/mm/yyyy', width=22, background='darkblue',
-                                   foreground='white', borderwidth=2, state='readonly')
-    date_entry_entrega.grid(row=5, column=1, pady=4, sticky="w")
-    date_entry_entrega.bind("<<DateEntrySelected>>", actualizar_color_categoria)
-
-    global date_entry_vencimiento
-    date_entry_vencimiento = DateEntry(form, date_pattern='dd/mm/yyyy', width=22, background='darkblue',
-                                       foreground='white', borderwidth=2, state='readonly')
-    date_entry_vencimiento.grid(row=6, column=1, pady=4, sticky="w")
-    date_entry_vencimiento.bind("<<DateEntrySelected>>", actualizar_color_categoria)
-
-    global canvas_categoria
-    canvas_categoria = tk.Canvas(form, width=120, height=20, bg=paleta["alerta_verde"], highlightthickness=1,
-                                  highlightbackground=paleta["borde"])
-    canvas_categoria.grid(row=7, column=1, pady=4, sticky="w")
-    actualizar_color_categoria()
+    entry_precio = crear_entry(prod_inner, width=15, validate="key", validatecommand=vcmd_real)
+    entry_precio.grid(row=2, column=1, sticky="w", padx=(0, 15), pady=6)
 
     global entry_unidad
-    entry_unidad = crear_entry(form, width=25)
-    entry_unidad.grid(row=8, column=1, pady=4, sticky="w")
+    entry_unidad = crear_entry(prod_inner, width=12)
+    entry_unidad.grid(row=2, column=3, sticky="w", pady=6)
     entry_unidad.insert(0, "Unidad")
 
-    btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
-    btn_frame.pack(fill="x", pady=5)
+    fechas_card = crear_card(main_frame, "Fechas y Categoría")
+    fechas_card.pack(fill="x", pady=(0, 14))
+    fechas_inner = tk.Frame(fechas_card, bg=paleta["bg_card"])
+    fechas_inner.pack(fill="x", padx=15, pady=(0, 16))
 
-    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_inventario), "Secundario").pack(side="left")
-    crear_boton(btn_frame, "🔍 Buscar", mostrar_ventana_editar, "Secundario").pack(side="left", padx=10)
-    crear_boton(btn_frame, "💾 Guardar", guardar_datos, "Exito").pack(side="right")
+    crear_label(fechas_inner, "Fecha Entrega:", "bold").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=6)
+    global date_entry_entrega
+    date_entry_entrega = DateEntry(fechas_inner, date_pattern='dd/mm/yyyy', width=18, background='darkblue',
+                                   foreground='white', borderwidth=2, state='readonly')
+    date_entry_entrega.grid(row=0, column=1, sticky="w", padx=(0, 15), pady=6)
+    date_entry_entrega.bind("<<DateEntrySelected>>", actualizar_color_categoria)
+    crear_label(fechas_inner, "Fecha Vencimiento:", "bold").grid(row=0, column=2, sticky="e", padx=(0, 6), pady=6)
+    global date_entry_vencimiento
+    date_entry_vencimiento = DateEntry(fechas_inner, date_pattern='dd/mm/yyyy', width=18, background='darkblue',
+                                       foreground='white', borderwidth=2, state='readonly')
+    date_entry_vencimiento.grid(row=0, column=3, sticky="w", pady=6)
+    date_entry_vencimiento.bind("<<DateEntrySelected>>", actualizar_color_categoria)
+
+    crear_label(fechas_inner, "Categoría:", "bold").grid(row=1, column=0, sticky="e", padx=(0, 6), pady=6)
+    global canvas_categoria
+    canvas_categoria = tk.Canvas(fechas_inner, width=100, height=22, bg=paleta["alerta_verde"],
+                                  highlightthickness=1, highlightbackground=paleta["borde"])
+    canvas_categoria.grid(row=1, column=1, sticky="w", pady=6)
+    global label_categoria_texto
+    label_categoria_texto = crear_label(fechas_inner, "", "info")
+    label_categoria_texto.grid(row=1, column=2, columnspan=2, sticky="w", padx=(10, 0), pady=6)
+    actualizar_color_categoria()
+
+    if alertas_vencimiento or alertas_stock:
+        alertas_card = crear_card(main_frame, "Alertas")
+        alertas_card.pack(fill="x", pady=(0, 14))
+
+        colores_alerta = {
+            "rojo": (paleta["alerta_rojo"], paleta["alerta_rojo_bg"], "●"),
+            "amarillo": (paleta["alerta_amarillo"], paleta["alerta_amarillo_bg"], "●"),
+            "verde": (paleta["alerta_verde"], paleta["alerta_verde_bg"], "●"),
+        }
+
+        for tipo, texto in (alertas_vencimiento + alertas_stock)[:6]:
+            color_texto, color_fondo, icono = colores_alerta.get(tipo, colores_alerta["rojo"])
+            fila = tk.Frame(alertas_card, bg=color_fondo)
+            fila.pack(fill="x", padx=10, pady=2)
+            barra = tk.Frame(fila, bg=color_texto, width=4)
+            barra.pack(side="left", fill="y")
+            tk.Label(fila, text=f" {icono} ", font=("Segoe UI", 10), fg=color_texto,
+                     bg=color_fondo).pack(side="left")
+            tk.Label(fila, text=texto, font=("Segoe UI", 9), fg=color_texto,
+                     bg=color_fondo, anchor="w").pack(side="left", fill="x", expand=True, padx=(0, 10), pady=6)
+
+    btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    btn_frame.pack(fill="x", pady=(8, 0))
+
+    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_inventario), "Secundario", "pequeño").pack(side="left")
+    crear_boton(btn_frame, "🔍 Buscar", mostrar_ventana_editar, "Secundario", "pequeño").pack(side="left", padx=(10, 0))
+    crear_boton(btn_frame, "✏️ Editar", mostrar_ventana_editar, "Advertencia", "pequeño").pack(side="left", padx=(10, 0))
+    crear_boton(btn_frame, "🗑 Eliminar", eliminar_producto, "Peligro", "pequeño").pack(side="left", padx=(10, 0))
+    crear_boton(btn_frame, "💾 Guardar", guardar_datos, "Exito", "pequeño").pack(side="right")
 
     entry_nombre.focus_set()
+    ventana_inventario.update_idletasks()
+    w = ventana_inventario.winfo_reqwidth()
+    h = ventana_inventario.winfo_reqheight()
+    ventana_inventario.geometry(f"{w}x{h}")
+    centrar_ventana(ventana_inventario)
     ventana_inventario.mainloop()

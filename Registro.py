@@ -133,8 +133,8 @@ def mostrar_ventana_registro():
 
     ventana_registro = tk.Tk()
     ventana_registro.title("Drogs+ - Registro de Ventas")
-    ventana_registro.geometry("750x520")
-    ventana_registro.resizable(False, False)
+    ventana_registro.resizable(True, True)
+    ventana_registro.minsize(550, 400)
     ventana_registro.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -157,52 +157,58 @@ def mostrar_ventana_registro():
     datos_filtrados = datos.copy()
 
     main_frame = tk.Frame(ventana_registro, bg=paleta["bg_principal"])
-    main_frame.pack(fill="both", expand=True, padx=15, pady=10)
+    main_frame.pack(fill="both", expand=True, padx=25, pady=12)
 
     filtros_card = crear_card(main_frame, "Filtros de Búsqueda")
-    filtros_card.pack(fill="x", pady=(0, 10))
+    filtros_card.pack(fill="x", pady=0)
+    filtros_inner = tk.Frame(filtros_card, bg=paleta["bg_card"])
+    filtros_inner.pack(fill="x", padx=15, pady=(0, 14))
 
-    filtros_frame = tk.Frame(filtros_card, bg=paleta["bg_card"])
-    filtros_frame.pack(fill="x", padx=15, pady=10)
+    crear_label(filtros_inner, "Producto:", "bold").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=6)
+    entrada_nombre = crear_entry(filtros_inner, width=20)
+    entrada_nombre.grid(row=0, column=1, padx=(0, 15), pady=6)
 
-    crear_label(filtros_frame, "Producto:", "normal").grid(row=0, column=0, padx=(0, 5))
-    entrada_nombre = crear_entry(filtros_frame, width=18)
-    entrada_nombre.grid(row=0, column=1, padx=(0, 10))
+    crear_label(filtros_inner, "Fecha:", "bold").grid(row=0, column=2, sticky="e", padx=(0, 6), pady=6)
+    entrada_fecha = crear_entry(filtros_inner, width=12)
+    entrada_fecha.grid(row=0, column=3, padx=(0, 15), pady=6)
 
-    crear_label(filtros_frame, "Fecha:", "normal").grid(row=0, column=2, padx=(0, 5))
-    entrada_fecha = crear_entry(filtros_frame, width=12)
-    entrada_fecha.grid(row=0, column=3, padx=(0, 10))
+    crear_label(filtros_inner, "Hora:", "bold").grid(row=0, column=4, sticky="e", padx=(0, 6), pady=6)
+    entrada_hora = crear_entry(filtros_inner, width=10)
+    entrada_hora.grid(row=0, column=5, padx=(0, 15), pady=6)
 
-    crear_label(filtros_frame, "Hora:", "normal").grid(row=0, column=4, padx=(0, 5))
-    entrada_hora = crear_entry(filtros_frame, width=10)
-    entrada_hora.grid(row=0, column=5, padx=(0, 10))
-
-    crear_boton(filtros_frame, "🔍 Buscar", filtrar_datos, "Primario").grid(row=0, column=6)
+    crear_boton(filtros_inner, "🔍 Buscar", filtrar_datos, "Primario", "pequeño").grid(row=0, column=6, pady=6)
 
     mensaje_error = crear_label(main_frame, "", "normal", fg=paleta["alerta_rojo"])
-    mensaje_error.pack(anchor="w", pady=(0, 5))
+    mensaje_error.pack(anchor="w")
 
-    tabla_card = crear_card(main_frame, None)
-    tabla_card.pack(fill="both", expand=True, pady=(0, 10))
+    tabla_card = crear_card(main_frame, "Historial de Ventas")
+    tabla_card.pack(fill="both", expand=True)
 
     columnas = list(datos.columns)
     tree = crear_treeview(tabla_card, columnas)
-    tree.pack(fill="both", expand=True, padx=10, pady=10)
+    tree.pack(fill="both", expand=True, padx=10, pady=2)
 
-    paginacion_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
-    paginacion_frame.pack(fill="x", pady=(0, 10))
+    pag_card = tk.Frame(main_frame, bg=paleta["bg_principal"])
+    pag_card.pack(fill="x", pady=(6, 0))
 
-    crear_boton(paginacion_frame, "← Anterior", pagina_anterior, "Secundario").pack(side="left")
-    lbl_pagina = crear_label(paginacion_frame, "", "normal")
-    lbl_pagina.pack(side="left", padx=15)
-    crear_boton(paginacion_frame, "Siguiente →", siguiente_pagina, "Secundario").pack(side="left")
+    pag_der = tk.Frame(pag_card, bg=paleta["bg_principal"])
+    pag_der.pack(side="right")
+    crear_boton(pag_der, "←", pagina_anterior, "Secundario", "pequeño").pack(side="left")
+    lbl_pagina = crear_label(pag_der, "", "normal")
+    lbl_pagina.pack(side="left", padx=10)
+    crear_boton(pag_der, "→", siguiente_pagina, "Secundario", "pequeño").pack(side="left")
 
     btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
-    btn_frame.pack(fill="x")
+    btn_frame.pack(fill="x", pady=(8, 0))
 
-    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_registro), "Secundario").pack(side="left")
-    crear_boton(btn_frame, "🗑 Eliminar Filtro", eliminar_registro, "Peligro").pack(side="right", padx=(10, 0))
-    crear_boton(btn_frame, "📥 Exportar", guardar_registros, "Exito").pack(side="right")
+    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_registro), "Secundario", "pequeño").pack(side="left")
+    crear_boton(btn_frame, "🗑 Eliminar", eliminar_registro, "Peligro", "pequeño").pack(side="right", padx=(10, 0))
+    crear_boton(btn_frame, "📥 Exportar", guardar_registros, "Exito", "pequeño").pack(side="right")
 
     cargar_pagina()
+    ventana_registro.update_idletasks()
+    w = ventana_registro.winfo_reqwidth()
+    h = ventana_registro.winfo_reqheight()
+    ventana_registro.geometry(f"{w}x{h}")
+    centrar_ventana(ventana_registro)
     ventana_registro.mainloop()

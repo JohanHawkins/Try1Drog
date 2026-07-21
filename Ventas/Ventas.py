@@ -119,8 +119,8 @@ def confirmar_compra():
     paleta = get_paleta()
     ventana_confirmacion = tk.Toplevel()
     ventana_confirmacion.title("Confirmar Venta")
-    ventana_confirmacion.resizable(False, False)
-    ventana_confirmacion.geometry("320x220")
+    ventana_confirmacion.resizable(True, True)
+    ventana_confirmacion.minsize(280, 180)
     ventana_confirmacion.configure(bg=paleta["bg_frame"])
     ventana_confirmacion.grab_set()
 
@@ -144,6 +144,12 @@ def confirmar_compra():
 
     crear_boton(btn_frame, "Cancelar", cerrar_ventana_confirmacion, "Secundario").pack(side="left")
     crear_boton(btn_frame, "✓ Confirmar", lambda: realizar_compra(ventana_confirmacion), "Exito").pack(side="right")
+
+    ventana_confirmacion.update_idletasks()
+    w = ventana_confirmacion.winfo_reqwidth()
+    h = ventana_confirmacion.winfo_reqheight()
+    ventana_confirmacion.geometry(f"{w}x{h}")
+    centrar_ventana(ventana_confirmacion)
 
 def cerrar_ventana_confirmacion():
     global ventana_confirmacion
@@ -214,8 +220,8 @@ def mostrar_ventana_ventas():
 
     ventana_ventas = tk.Tk()
     ventana_ventas.title("Drogs+ - Punto de Venta")
-    ventana_ventas.geometry("450x530")
-    ventana_ventas.resizable(False, False)
+    ventana_ventas.resizable(True, True)
+    ventana_ventas.minsize(400, 420)
     ventana_ventas.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -228,81 +234,79 @@ def mostrar_ventana_ventas():
     crear_header(ventana_ventas, "Punto de Venta")
 
     main_frame = tk.Frame(ventana_ventas, bg=paleta["bg_principal"])
-    main_frame.pack(fill="both", expand=True, padx=15, pady=10)
+    main_frame.pack(fill="both", expand=True, padx=25, pady=12)
 
-    search_card = crear_card(main_frame, "Buscar Producto")
-    search_card.pack(fill="x", pady=(0, 10))
+    search_card = crear_card(main_frame, "Producto")
+    search_card.pack(fill="x", pady=(0, 14))
+    search_inner = tk.Frame(search_card, bg=paleta["bg_card"])
+    search_inner.pack(fill="x", padx=15, pady=(0, 16))
 
-    search_frame = tk.Frame(search_card, bg=paleta["bg_card"])
-    search_frame.pack(fill="x", padx=15, pady=10)
-
-    crear_label(search_frame, "Producto:", "bold").pack(anchor="w")
-    entry_nombre = crear_entry(search_frame, width=40, font=("Segoe UI", 12))
-    entry_nombre.pack(fill="x", pady=(2, 5))
+    entry_nombre = crear_entry(search_inner, width=40, font=("Segoe UI", 12))
+    entry_nombre.pack(fill="x")
     entry_nombre.bind("<KeyRelease>", actualizar_sugerencias)
     entry_nombre.bind("<FocusOut>", ocultar_sugerencias)
     entry_nombre.focus_set()
 
-    listbox_sugerencias = tk.Listbox(search_frame, height=4, font=("Segoe UI", 10),
+    listbox_sugerencias = tk.Listbox(search_inner, height=4, font=("Segoe UI", 10),
                                       bg=paleta["bg_input"], fg=paleta["texto_principal"],
                                       selectbackground=paleta["bg_seleccion"],
                                       highlightbackground=paleta["borde"], highlightthickness=1)
     listbox_sugerencias.bind("<<ListboxSelect>>", seleccionar_sugerencia)
 
-    info_card = crear_card(main_frame, "Detalles del Producto")
-    info_card.pack(fill="x", pady=(0, 10))
+    detalle_card = crear_card(main_frame, "Detalles del Producto")
+    detalle_card.pack(fill="x", pady=(0, 14))
+    detalle_inner = tk.Frame(detalle_card, bg=paleta["bg_card"])
+    detalle_inner.pack(fill="x", padx=15, pady=(0, 16))
 
-    info_frame = tk.Frame(info_card, bg=paleta["bg_card"])
-    info_frame.pack(fill="x", padx=15, pady=10)
+    crear_label(detalle_inner, "Stock:", "bold").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=6)
+    label_stock_val = crear_label(detalle_inner, "-", "normal")
+    label_stock_val.grid(row=0, column=1, sticky="w", padx=(0, 20), pady=6)
 
-    info_items = [
-        ("Stock:", "stock"),
-        ("Precio:", "precio"),
-        ("Unidad:", "unidad"),
-        ("Categoría:", "categoria"),
-    ]
+    crear_label(detalle_inner, "Precio:", "bold").grid(row=0, column=2, sticky="e", padx=(0, 6), pady=6)
+    label_precio_val = crear_label(detalle_inner, "$0.00 COP", "normal")
+    label_precio_val.grid(row=0, column=3, sticky="w", pady=6)
 
-    for i, (texto, key) in enumerate(info_items):
-        crear_label(info_frame, texto, "bold").grid(row=i, column=0, sticky="w", pady=3, padx=(0, 10))
+    crear_label(detalle_inner, "Unidad:", "bold").grid(row=1, column=0, sticky="e", padx=(0, 6), pady=6)
+    label_unidad_val = crear_label(detalle_inner, "-", "normal")
+    label_unidad_val.grid(row=1, column=1, sticky="w", padx=(0, 20), pady=6)
 
-        if key == "stock":
-            label_stock_val = crear_label(info_frame, "-", "normal")
-            label_stock_val.grid(row=i, column=1, sticky="w", pady=3)
-        elif key == "precio":
-            label_precio_val = crear_label(info_frame, "$0.00 COP", "normal")
-            label_precio_val.grid(row=i, column=1, sticky="w", pady=3)
-        elif key == "unidad":
-            label_unidad_val = crear_label(info_frame, "-", "normal")
-            label_unidad_val.grid(row=i, column=1, sticky="w", pady=3)
-        elif key == "categoria":
-            label_categoria_val = crear_label(info_frame, "-", "normal")
-            label_categoria_val.grid(row=i, column=1, sticky="w", pady=3)
+    crear_label(detalle_inner, "Categoría:", "bold").grid(row=1, column=2, sticky="e", padx=(0, 6), pady=6)
+    label_categoria_val = crear_label(detalle_inner, "-", "normal")
+    label_categoria_val.grid(row=1, column=3, sticky="w", pady=6)
 
-    cant_frame = tk.Frame(main_frame, bg=paleta["bg_frame"])
-    cant_frame.pack(fill="x", pady=(0, 10))
+    cant_card = crear_card(main_frame, "Cantidad")
+    cant_card.pack(fill="x", pady=(0, 14))
+    cant_inner = tk.Frame(cant_card, bg=paleta["bg_card"])
+    cant_inner.pack(fill="x", padx=15, pady=(0, 16))
 
-    crear_label(cant_frame, "Cantidad:", "bold").pack(anchor="w")
-    entry_cantidad = crear_entry(cant_frame, width=15, font=("Segoe UI", 14))
-    entry_cantidad.pack(anchor="w", pady=(2, 5))
+    entry_cantidad = crear_entry(cant_inner, width=12, font=("Segoe UI", 16))
+    entry_cantidad.pack(anchor="w")
     entry_cantidad.bind("<KeyRelease>", calcular_total)
     entry_cantidad.bind("<KeyPress>", solo_numeros)
 
-    total_card = crear_card(main_frame, None)
-    total_card.pack(fill="x", pady=(0, 10))
-    total_inner = tk.Frame(total_card, bg=paleta["bg_card"])
-    total_inner.pack(fill="x", padx=15, pady=15)
-    crear_label(total_inner, "TOTAL A PAGAR:", "bold").pack(anchor="w")
-    label_total = tk.Label(total_inner, text="$0.00 COP", font=("Segoe UI", 20, "bold"),
-                            fg=paleta["texto_secundario"], bg=paleta["bg_card"])
+    total_card = tk.Frame(main_frame, bg=paleta["bg_boton_primario"], bd=0)
+    total_card.pack(fill="x", pady=(0, 14))
+    total_inner = tk.Frame(total_card, bg=paleta["bg_boton_primario"])
+    total_inner.pack(fill="x", padx=20, pady=18)
+    tk.Label(total_inner, text="TOTAL A PAGAR", font=("Segoe UI", 10, "bold"),
+             fg=paleta["texto_blanco"], bg=paleta["bg_boton_primario"]).pack(anchor="w")
+    label_total = tk.Label(total_inner, text="$0.00 COP", font=("Segoe UI", 24, "bold"),
+                            fg=paleta["texto_blanco"], bg=paleta["bg_boton_primario"])
     label_total.pack(anchor="w")
 
     btn_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
-    btn_frame.pack(fill="x")
+    btn_frame.pack(fill="x", pady=(8, 0))
 
-    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_ventas), "Secundario").pack(side="left")
-    crear_boton(btn_frame, "✓ Vender (Enter)", confirmar_compra, "Exito").pack(side="right")
+    crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_ventas), "Secundario", "pequeño").pack(side="left")
+    crear_boton(btn_frame, "✓ Vender (Enter)", confirmar_compra, "Exito", "pequeño").pack(side="right")
 
     entry_nombre.bind("<Return>", lambda e: entry_cantidad.focus_set())
     entry_cantidad.bind("<Return>", lambda e: confirmar_compra())
+
+    ventana_ventas.update_idletasks()
+    w = ventana_ventas.winfo_reqwidth()
+    h = ventana_ventas.winfo_reqheight()
+    ventana_ventas.geometry(f"{w}x{h}")
+    centrar_ventana(ventana_ventas)
 
     ventana_ventas.mainloop()

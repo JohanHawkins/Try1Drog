@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import os
 from utils import centrar_ventana
 from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
-                    crear_entry, crear_label, MODO_OSCURO)
+                    crear_entry, crear_label)
 import VenMenu
 
 def acceder(serial, ventana):
@@ -12,13 +12,12 @@ def acceder(serial, ventana):
     VenMenu.mostrar_ventana_menu()
 
 def mostrar_ventana():
-    cargar_config()
     paleta = get_paleta()
 
     ventana = tk.Tk()
     ventana.title("Drogs+")
-    ventana.geometry("420x380")
-    ventana.resizable(False, False)
+    ventana.resizable(True, True)
+    ventana.minsize(350, 300)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -61,8 +60,12 @@ def mostrar_ventana():
 
     campo_serial.bind("<Return>", lambda e: acceder(campo_serial.get(), ventana))
 
+    ventana.update_idletasks()
+    w = ventana.winfo_reqwidth()
+    h = ventana.winfo_reqheight()
+    ventana.geometry(f"{w}x{h}")
+    centrar_ventana(ventana)
+
     ventana.mainloop()
 
-from theme import cargar_config
-cargar_config()
 mostrar_ventana()
