@@ -7,6 +7,7 @@ from utils import centrar_ventana
 from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
                     crear_entry, crear_label, crear_card, crear_alerta)
 from Clientes.Clientes import cargar_puntos_cliente, sumar_puntos
+from Facturacion.facturacion import mostrar_ventana_facturacion
 
 ventana_confirmacion = None
 indices_sugerencias = []
@@ -407,6 +408,7 @@ def mostrar_ventana_ventas():
     btn_frame.pack(fill="x", pady=(8, 0))
 
     crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana_ventas), "Secundario", "pequeño").pack(side="left")
+    crear_boton(btn_frame, "📄 Factura", lambda: [ventana_ventas.destroy(), mostrar_ventana_facturacion()], "Primario", "pequeño").pack(side="left", padx=(10, 0))
     crear_boton(btn_frame, "✓ Vender (Enter)", confirmar_compra, "Exito", "pequeño").pack(side="right")
 
     entry_nombre.bind("<Return>", lambda e: entry_cantidad.focus_set())

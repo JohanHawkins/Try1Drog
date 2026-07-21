@@ -9,6 +9,8 @@ import Ventas.Ventas as Ventas
 import Registro
 import Clientes.Clientes as Clientes
 import Reportes.Reportes as Reportes
+from Facturacion.facturacion import mostrar_ventana_facturacion
+from Facturacion.config_empresa import mostrar_ventana_config
 
 def crear_ventana_menu():
     paleta = get_paleta()
@@ -47,6 +49,14 @@ def abrir_reportes(ventana):
     ventana.destroy()
     Reportes.mostrar_ventana_reportes()
 
+def abrir_facturacion(ventana):
+    ventana.destroy()
+    mostrar_ventana_facturacion()
+
+def abrir_config_dian(ventana):
+    ventana.destroy()
+    mostrar_ventana_config()
+
 def mostrar_ventana_menu():
     ventana_menu = crear_ventana_menu()
     paleta = get_paleta()
@@ -61,9 +71,11 @@ def mostrar_ventana_menu():
     modulos = [
         ("📦  Gestión de Inventario", lambda: abrir_inventario(ventana_menu)),
         ("🛒  Punto de Venta", lambda: abrir_ventas(ventana_menu)),
+        ("📄  Facturación Electrónica", lambda: abrir_facturacion(ventana_menu)),
         ("📋  Historial de Ventas", lambda: abrir_registro(ventana_menu)),
         ("👤  Clientes", lambda: abrir_clientes(ventana_menu)),
         ("📊  Reportes y Analítica", lambda: abrir_reportes(ventana_menu)),
+        ("⚙  Configuración DIAN", lambda: abrir_config_dian(ventana_menu)),
     ]
 
     for texto, comando in modulos:
