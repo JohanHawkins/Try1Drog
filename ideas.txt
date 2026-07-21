@@ -9,183 +9,75 @@ ARCHIVOS DEL PROYECTO:
    - Ventana de inicio de sesión
    - Campo para ingresar serial de acceso
    - Imagen de cruz azul (logo)
-   - Ventana auto-dimensionable
 
 2. VenMenu.py (Menú principal)
    - Navegación entre módulos con 5 botones color-coded
    - Módulos: Inventario, Ventas, Registros, Clientes, Reportes
-   - Ventana auto-dimensionable
 
 3. theme.py (Sistema de diseño)
-   - Paleta de colores CLARA (modo oscuro eliminado)
+   - Paleta de colores CLARA
    - Funciones helper: crear_header(), crear_card(), crear_boton(),
      crear_entry(), crear_label(), crear_alerta(), crear_treeview()
    - crear_boton() soporta parámetro tamaño ("normal" / "pequeño")
-   - Estilos ttk configurados (Treeview, Button, Entry, Scrollbar, Notebook)
+   - Estilos ttk configurados
 
 4. utils.py
    - Función centrar_ventana() reutilizable
 
 5. Inventario/Inventario.py
-   - Formulario para agregar productos (layout grid 2 columnas)
+   - Formulario layout grid 2 columnas
    - Cards: Producto, Fechas y Categoría, Alertas
-   - Campos: Nombre, Identificador (auto-generado), Cantidad, Stock Mínimo,
-     Precio, Fecha Entrega, Fecha Vencimiento, Categoría, Unidad
-   - Categoría por vencimiento: Verde (>12 meses), Amarillo (6-12 meses), Rojo (<6 meses)
    - Alertas de vencimiento con barra lateral de color
-   - Alertas de stock mínimo
    - Botones: Volver, Buscar, Editar, Eliminar, Guardar
    - Ventana de eliminación con búsqueda y Treeview
-   - Guarda en inventario_productos.xlsx
 
 6. Inventario/Editar_Producto.py
-   - Búsqueda de productos con tema visual
-   - Edición inline con doble clic
-   - Eliminación de productos seleccionados
-   - Vista de resultados con colores por categoría (Treeview temático)
-   - Ventanas auto-dimensionables
+   - Búsqueda y edición inline de productos
+   - Colores por categoría en Treeview
 
 7. Ventas/Ventas.py
-   - POS optimizado para facturación rápida
-   - Cards: Producto, Detalles del Producto, Cantidad
-   - Búsqueda con sugerencias instantáneas
-   - Detalles: Stock, Precio, Unidad, Categoría (grid 2x2)
-   - Total a pagar con display grande (fondo color primario)
-   - Atajos de teclado: Enter para vender
-   - Descuento de stock al comprar
-   - Registro de cada venta en registros_compra.xlsx
-   - Ventana auto-dimensionable
+   - POS con búsqueda instantáneas y sugerencias
+   - Detalles del producto en grid 2x2
+   - Total a pagar con display grande
+   - Atajos de teclado (Enter para vender)
 
 8. Registro.py
-   - Visualización de historial de ventas con Treeview temático
-   - Filtros: Producto, Fecha, Hora (grid alineado)
-   - Paginación compacta al lado derecho (← Página X de Y →)
+   - Historial de ventas con Treeview
+   - Filtros: Producto, Fecha, Hora
+   - Paginación compacta al lado derecho
    - Exportar a Excel, TXT o PDF
-   - Eliminación de registros
-   - Ventana auto-dimensionable
 
 9. Clientes/Clientes.py
-   - Gestión de clientes (CRUD)
-   - Campos: Nombre, Cédula, Teléfono, Dirección, Email
-   - Treeview temático con colores alternados
-   - Guarda en Clientes/clientes.xlsx
-   - Ventana auto-dimensionable
+   - CRUD de clientes
+   - Treeview con colores alternados
 
 10. Reportes/Reportes.py
-    - Dashboard con stat cards (ventas, productos, ingresos)
-    - Colores en stat cards (azul, amarillo, verde)
-    - Ranking de productos más vendidos (Treeview temático)
-    - Ventana auto-dimensionable
+    - Dashboard con stat cards
+    - Ranking de productos más vendidos
 
 ARCHIVOS DE DATOS:
-- Inventario/inventario_productos.xlsx (stock de productos)
-- Ventas/registros_compra.xlsx (historial de ventas)
-- Clientes/clientes.xlsx (base de datos de clientes)
+- Inventario/inventario_productos.xlsx
+- Ventas/registros_compra.xlsx
+- Clientes/clientes.xlsx
 
 RECURSOS:
-- images/cruz_azul.ico (icono de ventana)
-- images/cruz_azul.png (logo)
+- images/cruz_azul.ico
+- images/cruz_azul.png
 
 DEPENDENCIAS:
-- tkinter (interfaz gráfica)
-- pandas (manejo de datos)
-- openpyxl (formato Excel)
-- Pillow/PIL (imágenes)
-- tkcalendar (selector de fechas)
-- fpdf (generación de PDF)
-- python-dateutil (cálculo de fechas)
+- tkinter, pandas, openpyxl, Pillow, tkcalendar, fpdf, python-dateutil
 
 =================================================================
-CONCEPTO DEL PROYECTO - Visión a Futuro
+VISIÓN A FUTURO
 =================================================================
 
-Drogs+ es una aplicación integral diseñada específicamente para pequeñas farmacias,
-con el objetivo de modernizar y profesionalizar la gestión diaria del negocio.
+Drogs+ es una aplicación integral para pequeñas farmacias,
+con el objetivo de modernizar la gestión diaria del negocio.
 
-MÓDULOS PRINCIPALES:
+PENDIENTES:
 
-1. PUNTO DE VENTA RÁPIDO
-   - Ventas fraccionadas (por pastillas, unidades, cajas)
-   - Búsqueda instantánea de productos
-   - Métodos de pago integrados
-   - Facturación electrónica
-
-2. CONTROL DE INVENTARIO INTELIGENTE
-   - Alertas automáticas de caducidad (30, 60, 90 días)
-   - Niveles mínimos de stock con notificación de reabastecimiento
-   - Sugerencia automática de medicamentos genéricos equivalentes
-   - Código de barras y lote por producto
-
-3. CUMPLIMIENTO REGULATORIO
-   - Registro de recetas para medicamentos controlados
-   - Traza completa de compraventa de sustancias reguladas
-   - Reportes listos para inspecciones sanitarias
-
-4. FIDELIZACIÓN DE CLIENTES
-   - Base de datos de pacientes
-   - Recordatorios automáticos de recompra para pacientes crónicos
-   - Historial de compras por cliente
-
-5. REPORTES Y ANALÍTICA
-   - Rentabilidad por producto, categoría y período
-   - Productos más vendidos y menos rotados
-   - Dashboard de toma de decisiones
-   - Reportes exportables (PDF, Excel)
-
-VISIÓN:
-Interfaz sumamente intuitiva que no requiera capacitación compleja,
-permitiendo al personal de farmacia enfocarse en lo que importa:
-atender bien al paciente.
-
-=================================================================
-CAMBIOS APLICADOS - 21/07/2026
-=================================================================
-
-1. [OK] Modo oscuro eliminado completamente
-   - theme.py: PALETA_OSCURA, MODO_OSCURO, toggle, persistencia eliminados
-   - Botón toggle 🌙/☀️ eliminado de crear_header()
-   - Imports y llamadas a cargar_config() eliminados de VenIni.py y VenMenu.py
-   - theme_config.json ya no se utiliza
-
-2. [OK] Ventanas auto-dimensionables
-   - Todas las ventanas: geometry() fijo eliminado
-   - Todas las ventanas: resizable(True, True)
-   - Cada ventana usa update_idletasks() + winfo_reqwidth/height
-   - minsize() definido por ventana
-
-3. [OK] Gestión de Inventario - Rediseño visual
-   - Layout grid 2 columnas para formulario
-   - Cards agrupadas: Producto, Fechas y Categoría, Alertas
-   - Orden: Producto → Fechas → Alertas
-   - Alertas con barra lateral de color y texto descriptivo
-   - Canvas/scrollbar eliminado (contenido directo)
-   - Botones: Volver, Buscar, Editar, Eliminar, Guardar
-   - Ventana de eliminación con búsqueda y Treeview
-
-4. [OK] Punto de Venta - Rediseño visual
-   - Cards: Producto, Detalles (grid 2x2), Cantidad
-   - Total a pagar con fondo de color primario
-   - Entry de cantidad con font grande (16)
-
-5. [OK] Registro de Ventas - Rediseño visual
-   - Filtros con grid alineado
-   - Paginación compacta al lado derecho (← →)
-   - Botones inferiores más pequeños
-
-6. [OK] Botones inferiores reducidos
-   - crear_boton() acepta parámetro tamaño="pequeño"
-   - Font 9 en vez de 10, padx 10 en vez de 15, pady 5 en vez de 8
-
-7. [OK] Espaciado general aumentado
-   - main_frame padx 25, pady 12
-   - Entre cards: pady 14
-   - Dentro de cards: pady 16
-   - Grid pady: 6
-
-PENDIENTES FUTUROS:
-
-- Métodos de pago integrados
-- Facturación electrónica
+✓ Métodos de pago integrados (Efectivo, Banco [no disponible], Puntos)
+✓ Facturación electrónica (PDF + XML estructurado para DIAN)
 - Código de barras y lote por producto
 - Registro de recetas / cumplimiento regulatorio
 - Historial de compras por cliente

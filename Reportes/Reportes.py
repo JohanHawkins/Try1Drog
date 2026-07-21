@@ -112,6 +112,35 @@ def mostrar_ventana_reportes():
         for i, (nombre, unidades, ing) in enumerate(lista[:15]):
             tag = "evenrow" if i % 2 == 0 else "oddrow"
             tree.insert("", "end", values=[nombre, unidades, f"${ing:,.2f}"], tags=(tag,))
+
+        if "Método Pago" in df_ventas.columns:
+            crear_label(main_frame, "Ventas por Método de Pago", "subtitle").pack(anchor="w", pady=(10, 5))
+            
+            metodo_card = crear_card(main_frame, "")
+            metodo_card.pack(fill="x", pady=(0, 10))
+            metodo_inner = tk.Frame(metodo_card, bg=paleta["bg_card"])
+            metodo_inner.pack(fill="x", padx=15, pady=10)
+            
+            ventas_por_metodo = df_ventas.groupby("Método Pago").agg(
+                Cantidad=("Precio Total", "count"),
+                Total=("Precio Total", lambda x: sum([float(str(v).replace("$", "").replace("COP", "").replace(",", "").strip()) for v in x if str(v).replace("$", "").replace("COP", "").replace(",", "").strip()]))
+            ).reset_index()
+            
+            colores = {"Efectivo": paleta["alerta_verde"], "Banco": paleta["alerta_amarillo"], "Puntos": paleta["alerta_azul"]}
+            
+            for i, (_, row) in enumerate(ventas_por_metodo.iterrows()):
+                metodo = row["Método Pago"]
+                cantidad = row["Cantidad"]
+                total = row["Total"]
+                color = colores.get(metodo, paleta["texto_principal"])
+                
+                info_frame = tk.Frame(metodo_inner, bg=paleta["bg_card"])
+                info_frame.pack(side="left", padx=20, pady=5, fill="x", expand=True)
+                
+                crear_label(info_frame, str(metodo), "normal").pack(anchor="w")
+                tk.Label(info_frame, text=f"{cantidad} ventas", font=("Segoe UI", 14, "bold"),
+                         fg=color, bg=paleta["bg_card"]).pack(anchor="w", pady=(2, 0))
+                crear_label(info_frame, f"${total:,.2f}", "info").pack(anchor="w")
     else:
         crear_label(main_frame, "No hay datos de ventas registrados.", "normal",
                     fg=paleta["texto_secundario"]).pack(pady=40)

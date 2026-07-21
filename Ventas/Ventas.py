@@ -6,9 +6,11 @@ from datetime import datetime
 from utils import centrar_ventana
 from theme import (get_paleta, aplicar_estilos, crear_header, crear_boton,
                     crear_entry, crear_label, crear_card, crear_alerta)
+from Clientes.Clientes import cargar_puntos_cliente, sumar_puntos
 
 ventana_confirmacion = None
 indices_sugerencias = []
+metodo_pago_seleccionado = "Efectivo"
 
 def volver_al_menu(ventana):
     ventana.destroy()
@@ -106,6 +108,27 @@ def calcular_total(event=None):
     except ValueError:
         label_total.config(text="$0.00 COP", fg=paleta["texto_secundario"])
 
+def seleccionar_metodo_pago(metodo):
+    global metodo_pago_seleccionado
+    paleta = get_paleta()
+    metodo_pago_seleccionado = metodo
+    
+    if hasattr(seleccionar_metodo_pago, 'btn_efectivo'):
+        seleccionar_metodo_pago.btn_efectivo.config(bg=paleta["bg_boton_secundario"])
+        seleccionar_metodo_pago.btn_banco.config(bg=paleta["bg_boton_secundario"])
+        seleccionar_metodo_pago.btn_puntos.config(bg=paleta["bg_boton_secundario"])
+    
+    if metodo == "Efectivo":
+        seleccionar_metodo_pago.btn_efectivo.config(bg=paleta["bg_boton_exito"])
+    elif metodo == "Banco":
+        seleccionar_metodo_pago.btn_banco.config(bg=paleta["alerta_amarillo"])
+        messagebox.showinfo("No disponible", "El pago por banco no está disponible aún.")
+    elif metodo == "Puntos":
+        seleccionar_metodo_pago.btn_puntos.config(bg=paleta["alerta_azul"])
+    
+    if hasattr(seleccionar_metodo_pago, 'label_metodo'):
+        seleccionar_metodo_pago.label_metodo.config(text=f"Método: {metodo}")
+
 def confirmar_compra():
     global ventana_confirmacion
 
@@ -120,7 +143,7 @@ def confirmar_compra():
     ventana_confirmacion = tk.Toplevel()
     ventana_confirmacion.title("Confirmar Venta")
     ventana_confirmacion.resizable(True, True)
-    ventana_confirmacion.minsize(280, 180)
+    ventana_confirmacion.minsize(320, 320)
     ventana_confirmacion.configure(bg=paleta["bg_frame"])
     ventana_confirmacion.grab_set()
 
@@ -138,6 +161,33 @@ def confirmar_compra():
     crear_label(info_frame, f"Producto: {entry_nombre.get()}", "normal").pack(anchor="w", padx=10, pady=3)
     crear_label(info_frame, f"Cantidad: {entry_cantidad.get()}", "normal").pack(anchor="w", padx=10, pady=3)
     crear_label(info_frame, f"Total: {label_total.cget('text')}", "bold").pack(anchor="w", padx=10, pady=3)
+
+    metodo_frame = tk.Frame(body, bg=paleta["bg_card"], bd=1, relief="solid",
+                             highlightbackground=paleta["borde"], highlightthickness=1)
+    metodo_frame.pack(fill="x", pady=(0, 15))
+    
+    tk.Label(metodo_frame, text="Método de Pago", font=("Segoe UI", 10, "bold"),
+             fg=paleta["texto_principal"], bg=paleta["bg_card"]).pack(anchor="w", padx=10, pady=(8, 5))
+    
+    btn_metodos = tk.Frame(metodo_frame, bg=paleta["bg_card"])
+    btn_metodos.pack(fill="x", padx=10, pady=(0, 10))
+    
+    seleccionar_metodo_pago.btn_efectivo = crear_boton(btn_metodos, "💵 Efectivo", 
+        lambda: seleccionar_metodo_pago("Efectivo"), "Exito", "pequeño")
+    seleccionar_metodo_pago.btn_efectivo.pack(side="left", padx=(0, 5))
+    
+    seleccionar_metodo_pago.btn_banco = crear_boton(btn_metodos, "🏦 Banco", 
+        lambda: seleccionar_metodo_pago("Banco"), "Advertencia", "pequeño")
+    seleccionar_metodo_pago.btn_banco.pack(side="left", padx=(0, 5))
+    
+    seleccionar_metodo_pago.btn_puntos = crear_boton(btn_metodos, "🎯 Puntos", 
+        lambda: seleccionar_metodo_pago("Puntos"), "Primario", "pequeño")
+    seleccionar_metodo_pago.btn_puntos.pack(side="left")
+    
+    seleccionar_metodo_pago.label_metodo = crear_label(metodo_frame, "Método: Efectivo", "info")
+    seleccionar_metodo_pago.label_metodo.pack(anchor="w", padx=10, pady=(0, 8))
+    
+    seleccionar_metodo_pago("Efectivo")
 
     btn_frame = tk.Frame(body, bg=paleta["bg_frame"])
     btn_frame.pack(fill="x")
@@ -158,11 +208,46 @@ def cerrar_ventana_confirmacion():
         ventana_confirmacion = None
 
 def realizar_compra(ventana_confirmacion):
-    global lista_productos
+    global lista_productos, metodo_pago_seleccionado
     paleta = get_paleta()
 
     nombre_producto = entry_nombre.get()
     cantidad_comprada = int(entry_cantidad.get())
+
+    if metodo_pago_seleccionado == "Banco":
+        messagebox.showinfo("No disponible", "El pago por banco no está disponible aún.")
+        return
+
+    if metodo_pago_seleccionado == "Puntos":
+        cedula = entrada_cedula.get().strip()
+        if not cedula:
+            messagebox.showwarning("Campos incompletos", "Ingrese la cédula del cliente para canjear puntos.")
+            return
+        
+        puntos_disponibles = cargar_puntos_cliente(cedula)
+        if puntos_disponibles is None:
+            messagebox.showerror("Error", "Cliente no encontrado.")
+            return
+        
+        try:
+            total_texto = label_total.cget("text").replace('$', '').replace('COP', '').replace(',', '').strip()
+            total_compra = float(total_texto)
+        except ValueError:
+            messagebox.showerror("Error", "No se pudo calcular el total.")
+            return
+        
+        puntos_necesarios = int(total_compra / 100)
+        
+        if puntos_disponibles < puntos_necesarios:
+            messagebox.showwarning("Puntos insuficientes", 
+                f"Puntos disponibles: {puntos_disponibles}\nPuntos necesarios: {puntos_necesarios}")
+            return
+        
+        if not messagebox.askyesno("Confirmar Canjeo", 
+            f"Canjear {puntos_necesarios} puntos por ${total_compra:,.2f} COP?\nPuntos restantes: {puntos_disponibles - puntos_necesarios}"):
+            return
+        
+        sumar_puntos(cedula, -puntos_necesarios)
 
     producto = lista_productos.loc[lista_productos["Nombre Producto"] == nombre_producto]
     if not producto.empty:
@@ -183,6 +268,7 @@ def realizar_compra(ventana_confirmacion):
             "Nombre Producto": [nombre_producto],
             "Cantidad Comprada": [cantidad_comprada],
             "Precio Total": [label_total.cget("text")],
+            "Método Pago": [metodo_pago_seleccionado],
             "Fecha": [datetime.now().strftime("%Y-%m-%d")],
             "Hora": [datetime.now().strftime("%H:%M:%S")]
         })
@@ -197,6 +283,19 @@ def realizar_compra(ventana_confirmacion):
             df_registros.to_excel(archivo, index=False)
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo guardar el registro: {e}")
+
+        if metodo_pago_seleccionado == "Efectivo":
+            try:
+                total_texto = label_total.cget("text").replace('$', '').replace('COP', '').replace(',', '').strip()
+                total_compra = float(total_texto)
+                puntos_ganados = int(total_compra / 1000)
+                if puntos_ganados > 0:
+                    cedula_cliente = entrada_cedula.get().strip()
+                    if cedula_cliente:
+                        sumar_puntos(cedula_cliente, puntos_ganados)
+                        messagebox.showinfo("Puntos", f"¡El cliente ganó {puntos_ganados} puntos!")
+            except:
+                pass
 
         cerrar_ventana_confirmacion()
         entry_nombre.delete(0, tk.END)
@@ -214,6 +313,7 @@ def realizar_compra(ventana_confirmacion):
 def mostrar_ventana_ventas():
     global entry_nombre, entry_cantidad, label_total, listbox_sugerencias, lista_productos
     global label_stock_val, label_precio_val, label_unidad_val, label_categoria_val
+    global entrada_cedula
 
     paleta = get_paleta()
     lista_productos = cargar_productos()
@@ -221,7 +321,7 @@ def mostrar_ventana_ventas():
     ventana_ventas = tk.Tk()
     ventana_ventas.title("Drogs+ - Punto de Venta")
     ventana_ventas.resizable(True, True)
-    ventana_ventas.minsize(400, 420)
+    ventana_ventas.minsize(400, 480)
     ventana_ventas.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -283,6 +383,15 @@ def mostrar_ventana_ventas():
     entry_cantidad.pack(anchor="w")
     entry_cantidad.bind("<KeyRelease>", calcular_total)
     entry_cantidad.bind("<KeyPress>", solo_numeros)
+
+    cliente_card = crear_card(main_frame, "Cliente (Opcional - Para Puntos)")
+    cliente_card.pack(fill="x", pady=(0, 14))
+    cliente_inner = tk.Frame(cliente_card, bg=paleta["bg_card"])
+    cliente_inner.pack(fill="x", padx=15, pady=(0, 16))
+    
+    crear_label(cliente_inner, "Cédula:", "bold").pack(anchor="w")
+    entrada_cedula = crear_entry(cliente_inner, width=20, font=("Segoe UI", 12))
+    entrada_cedula.pack(fill="x")
 
     total_card = tk.Frame(main_frame, bg=paleta["bg_boton_primario"], bd=0)
     total_card.pack(fill="x", pady=(0, 14))

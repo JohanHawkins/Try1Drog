@@ -18,13 +18,15 @@ def volver_al_menu(ventana):
     import VenMenu
     VenMenu.mostrar_ventana_menu()
 
-def aplicar_filtro(datos, nombre, fecha, hora):
+def aplicar_filtro(datos, nombre, fecha, hora, metodo_pago):
     if nombre:
         datos = datos[datos['Nombre Producto'].str.contains(nombre, case=False, na=False)]
     if fecha:
         datos = datos[datos['Fecha'].astype(str).str.contains(fecha, na=False)]
     if hora:
         datos = datos[datos['Hora'].astype(str).str.contains(hora, na=False)]
+    if metodo_pago:
+        datos = datos[datos['Método Pago'].astype(str).str.contains(metodo_pago, case=False, na=False)]
     return datos
 
 def guardar_registros():
@@ -89,9 +91,9 @@ def cargar_pagina():
     for item in tree.get_children():
         tree.delete(item)
 
-    for _, row in sub.iterrows():
+    for i, (_, row) in enumerate(sub.iterrows()):
         valores = [str(v) for v in row.values]
-        tag = "evenrow" if (_ % 2 == 0) else "oddrow"
+        tag = "evenrow" if i % 2 == 0 else "oddrow"
         tree.insert("", "end", values=valores, tags=(tag,))
 
     total = len(datos_filtrados)
@@ -117,7 +119,8 @@ def filtrar_datos():
     nombre = entrada_nombre.get()
     fecha = entrada_fecha.get()
     hora = entrada_hora.get()
-    datos_filtrados = aplicar_filtro(datos, nombre, fecha, hora)
+    metodo_pago = entrada_metodo.get() if entrada_metodo else ""
+    datos_filtrados = aplicar_filtro(datos, nombre, fecha, hora, metodo_pago)
     if datos_filtrados.empty:
         mensaje_error.config(text="Sin resultados para el filtro aplicado.")
     else:
@@ -126,7 +129,7 @@ def filtrar_datos():
 
 def mostrar_ventana_registro():
     global frame_tabla, datos_filtrados, datos, current_page
-    global tree, entrada_nombre, entrada_fecha, entrada_hora, mensaje_error, lbl_pagina
+    global tree, entrada_nombre, entrada_fecha, entrada_hora, entrada_metodo, mensaje_error, lbl_pagina
 
     paleta = get_paleta()
     excel_path = "Ventas/registros_compra.xlsx"
@@ -154,6 +157,11 @@ def mostrar_ventana_registro():
         return
 
     datos = pd.read_excel(excel_path)
+    
+    if "Método Pago" not in datos.columns:
+        datos["Método Pago"] = "Efectivo"
+        datos.to_excel(excel_path, index=False)
+    
     datos_filtrados = datos.copy()
 
     main_frame = tk.Frame(ventana_registro, bg=paleta["bg_principal"])
@@ -165,18 +173,22 @@ def mostrar_ventana_registro():
     filtros_inner.pack(fill="x", padx=15, pady=(0, 14))
 
     crear_label(filtros_inner, "Producto:", "bold").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=6)
-    entrada_nombre = crear_entry(filtros_inner, width=20)
-    entrada_nombre.grid(row=0, column=1, padx=(0, 15), pady=6)
+    entrada_nombre = crear_entry(filtros_inner, width=15)
+    entrada_nombre.grid(row=0, column=1, padx=(0, 10), pady=6)
 
     crear_label(filtros_inner, "Fecha:", "bold").grid(row=0, column=2, sticky="e", padx=(0, 6), pady=6)
-    entrada_fecha = crear_entry(filtros_inner, width=12)
-    entrada_fecha.grid(row=0, column=3, padx=(0, 15), pady=6)
+    entrada_fecha = crear_entry(filtros_inner, width=10)
+    entrada_fecha.grid(row=0, column=3, padx=(0, 10), pady=6)
 
     crear_label(filtros_inner, "Hora:", "bold").grid(row=0, column=4, sticky="e", padx=(0, 6), pady=6)
-    entrada_hora = crear_entry(filtros_inner, width=10)
-    entrada_hora.grid(row=0, column=5, padx=(0, 15), pady=6)
+    entrada_hora = crear_entry(filtros_inner, width=8)
+    entrada_hora.grid(row=0, column=5, padx=(0, 10), pady=6)
 
-    crear_boton(filtros_inner, "🔍 Buscar", filtrar_datos, "Primario", "pequeño").grid(row=0, column=6, pady=6)
+    crear_label(filtros_inner, "Método:", "bold").grid(row=0, column=6, sticky="e", padx=(0, 6), pady=6)
+    entrada_metodo = crear_entry(filtros_inner, width=10)
+    entrada_metodo.grid(row=0, column=7, padx=(0, 10), pady=6)
+
+    crear_boton(filtros_inner, "🔍 Buscar", filtrar_datos, "Primario", "pequeño").grid(row=0, column=8, pady=6)
 
     mensaje_error = crear_label(main_frame, "", "normal", fg=paleta["alerta_rojo"])
     mensaje_error.pack(anchor="w")

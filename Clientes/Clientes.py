@@ -10,8 +10,34 @@ ARCHIVO_CLIENTES = os.path.join("Clientes", "clientes.xlsx")
 
 def cargar_clientes():
     if os.path.exists(ARCHIVO_CLIENTES):
-        return pd.read_excel(ARCHIVO_CLIENTES)
-    return pd.DataFrame(columns=["Nombre", "Cedula", "Telefono", "Direccion", "Email"])
+        df = pd.read_excel(ARCHIVO_CLIENTES)
+        if "Puntos" not in df.columns:
+            df["Puntos"] = 0
+            df.to_excel(ARCHIVO_CLIENTES, index=False)
+        return df
+    return pd.DataFrame(columns=["Nombre", "Cedula", "Telefono", "Direccion", "Email", "Puntos"])
+
+def cargar_puntos_cliente(cedula):
+    df = cargar_clientes()
+    cliente = df[df["Cedula"].astype(str) == str(cedula)]
+    if not cliente.empty:
+        return int(cliente.iloc[0]["Puntos"])
+    return None
+
+def actualizar_puntos_cliente(cedula, nuevos_puntos):
+    df = cargar_clientes()
+    idx = df[df["Cedula"].astype(str) == str(cedula)].index
+    if not idx.empty:
+        df.loc[idx[0], "Puntos"] = max(0, int(nuevos_puntos))
+        guardar_clientes(df)
+        return True
+    return False
+
+def sumar_puntos(cedula, puntos_a_sumar):
+    puntos_actuales = cargar_puntos_cliente(cedula)
+    if puntos_actuales is not None:
+        return actualizar_puntos_cliente(cedula, puntos_actuales + puntos_a_sumar)
+    return False
 
 def guardar_clientes(df):
     os.makedirs("Clientes", exist_ok=True)
@@ -57,10 +83,14 @@ def mostrar_ventana_clientes():
         e.grid(row=i, column=1, sticky="w", pady=4)
         entries[key] = e
 
+    crear_label(form_frame, "Puntos:", "bold").grid(row=5, column=0, sticky="w", padx=(0, 10), pady=4)
+    label_puntos_val = crear_label(form_frame, "0", "success")
+    label_puntos_val.grid(row=5, column=1, sticky="w", pady=4)
+
     tree_frame = tk.Frame(main_frame, bg=paleta["bg_principal"])
     tree_frame.pack(fill="both", expand=True, pady=(0, 10))
 
-    columns = ["Nombre", "Cedula", "Telefono", "Direccion", "Email"]
+    columns = ["Nombre", "Cedula", "Telefono", "Direccion", "Email", "Puntos"]
     tree = crear_treeview(tree_frame, columns)
     tree.pack(fill="both", expand=True)
 
@@ -70,11 +100,13 @@ def mostrar_ventana_clientes():
         df = cargar_clientes()
         for i, (_, row) in enumerate(df.iterrows()):
             tag = "evenrow" if i % 2 == 0 else "oddrow"
-            tree.insert("", "end", values=[row.get(c, "") for c in columns], tags=(tag,))
+            puntos = int(row.get("Puntos", 0)) if "Puntos" in row else 0
+            tree.insert("", "end", values=[row.get(c, "") for c in columns[:5]] + [puntos], tags=(tag,))
 
     def limpiar_campos():
         for e in entries.values():
             e.delete(0, tk.END)
+        label_puntos_val.config(text="0")
 
     def agregar_cliente():
         nombre = entries["nombre"].get().strip()
@@ -91,7 +123,8 @@ def mostrar_ventana_clientes():
             "Cedula": cedula,
             "Telefono": entries["teléfono"].get().strip(),
             "Direccion": entries["dirección"].get().strip(),
-            "Email": entries["email"].get().strip()
+            "Email": entries["email"].get().strip(),
+            "Puntos": 0
         }])
         df = pd.concat([df, nuevo], ignore_index=True)
         guardar_clientes(df)
@@ -126,6 +159,7 @@ def mostrar_ventana_clientes():
         entries["teléfono"].insert(0, valores[2])
         entries["dirección"].insert(0, valores[3])
         entries["email"].insert(0, valores[4])
+        label_puntos_val.config(text=str(valores[5]) if len(valores) > 5 else "0")
 
     tree.bind("<<TreeviewSelect>>", seleccionar_cliente)
 
