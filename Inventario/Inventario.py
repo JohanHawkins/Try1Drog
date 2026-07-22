@@ -289,7 +289,7 @@ def mostrar_ventana_inventario():
     ventana_inventario = tk.Tk()
     ventana_inventario.title("Drogs+ - Inventario")
     ventana_inventario.resizable(True, True)
-    ventana_inventario.minsize(620, 600)
+    ventana_inventario.minsize(620, 450)
     ventana_inventario.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

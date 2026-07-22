@@ -54,7 +54,7 @@ def mostrar_ventana_clientes():
     ventana = tk.Tk()
     ventana.title("Drogs+ - Gestión de Clientes")
     ventana.resizable(True, True)
-    ventana.minsize(620, 500)
+    ventana.minsize(620, 680)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

@@ -17,7 +17,7 @@ def mostrar_ventana():
     ventana = tk.Tk()
     ventana.title("Drogs+")
     ventana.resizable(True, True)
-    ventana.minsize(400, 350)
+    ventana.minsize(400, 420)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

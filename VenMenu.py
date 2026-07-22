@@ -17,7 +17,7 @@ def crear_ventana_menu():
     ventana_menu = tk.Tk()
     ventana_menu.title("Drogs+ - Menú Principal")
     ventana_menu.resizable(True, True)
-    ventana_menu.minsize(380, 520)
+    ventana_menu.minsize(380, 600)
     ventana_menu.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

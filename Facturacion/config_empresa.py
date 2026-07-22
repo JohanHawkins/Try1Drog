@@ -65,7 +65,7 @@ def mostrar_ventana_config():
     ventana = tk.Tk()
     ventana.title("Drogs+ - Configuración Empresa (DIAN)")
     ventana.resizable(True, True)
-    ventana.minsize(560, 520)
+    ventana.minsize(560, 740)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -169,7 +169,13 @@ def mostrar_ventana_config():
     btn_frame = tk.Frame(scroll_frame, bg=paleta["bg_principal"])
     btn_frame.pack(fill="x", pady=(10, 0))
 
-    crear_boton(btn_frame, "← Cerrar", ventana.destroy, "Secundario").pack(side="left")
+    def volver_al_menu():
+        ventana.destroy()
+        import VenMenu
+        VenMenu.mostrar_ventana_menu()
+
+    crear_boton(btn_frame, "← Volver", volver_al_menu, "Secundario").pack(side="left")
+    crear_boton(btn_frame, "Cerrar", ventana.destroy, "Secundario").pack(side="left", padx=(10, 0))
     crear_boton(btn_frame, "💾 Guardar", guardar, "Exito").pack(side="right")
 
     centrar_ventana(ventana)
