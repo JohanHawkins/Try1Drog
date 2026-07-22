@@ -31,7 +31,7 @@ def mostrar_ventana_reportes():
     ventana = tk.Tk()
     ventana.title("Drogs+ - Reportes y Analítica")
     ventana.resizable(True, True)
-    ventana.minsize(500, 350)
+    ventana.minsize(620, 500)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

@@ -22,7 +22,7 @@ def mostrar_ventana_editar():
     ventana_editar = tk.Toplevel()
     ventana_editar.title("Drogs+ - Buscar Producto")
     ventana_editar.resizable(True, True)
-    ventana_editar.minsize(300, 150)
+    ventana_editar.minsize(420, 200)
     ventana_editar.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -78,7 +78,7 @@ def mostrar_resultados(resultados):
     ventana_resultados = tk.Toplevel()
     ventana_resultados.title("Drogs+ - Resultados de Búsqueda")
     ventana_resultados.resizable(True, True)
-    ventana_resultados.minsize(600, 300)
+    ventana_resultados.minsize(650, 380)
     ventana_resultados.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

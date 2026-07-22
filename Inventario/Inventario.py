@@ -215,7 +215,7 @@ def eliminar_producto():
     ventana_eliminar = tk.Toplevel()
     ventana_eliminar.title("Drogs+ - Eliminar Producto")
     ventana_eliminar.resizable(True, True)
-    ventana_eliminar.minsize(500, 300)
+    ventana_eliminar.minsize(620, 400)
     ventana_eliminar.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -289,7 +289,7 @@ def mostrar_ventana_inventario():
     ventana_inventario = tk.Tk()
     ventana_inventario.title("Drogs+ - Inventario")
     ventana_inventario.resizable(True, True)
-    ventana_inventario.minsize(480, 450)
+    ventana_inventario.minsize(620, 600)
     ventana_inventario.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

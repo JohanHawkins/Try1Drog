@@ -137,7 +137,7 @@ def mostrar_ventana_registro():
     ventana_registro = tk.Tk()
     ventana_registro.title("Drogs+ - Registro de Ventas")
     ventana_registro.resizable(True, True)
-    ventana_registro.minsize(550, 400)
+    ventana_registro.minsize(680, 520)
     ventana_registro.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

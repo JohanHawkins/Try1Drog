@@ -65,7 +65,7 @@ def mostrar_ventana_config():
     ventana = tk.Tk()
     ventana.title("Drogs+ - Configuración Empresa (DIAN)")
     ventana.resizable(True, True)
-    ventana.minsize(520, 480)
+    ventana.minsize(560, 520)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")

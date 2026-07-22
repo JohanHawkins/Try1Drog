@@ -318,7 +318,7 @@ def mostrar_ventana_ventas():
     ventana_ventas = tk.Tk()
     ventana_ventas.title("Drogs+ - Punto de Venta")
     ventana_ventas.resizable(True, True)
-    ventana_ventas.minsize(400, 480)
+    ventana_ventas.minsize(520, 620)
     ventana_ventas.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
