@@ -74,13 +74,15 @@ def mostrar_ventana_clientes():
     form_frame = tk.Frame(form_card, bg=paleta["bg_card"])
     form_frame.pack(fill="x", padx=15, pady=10)
 
+    form_frame.columnconfigure(1, weight=1)
+
     labels = ["Nombre:", "Cédula:", "Teléfono:", "Dirección:", "Email:"]
     entries = {}
     for i, texto in enumerate(labels):
         crear_label(form_frame, texto, "normal").grid(row=i, column=0, sticky="w", padx=(0, 10), pady=4)
         key = texto.lower().replace(":", "").strip()
-        e = crear_entry(form_frame, width=30)
-        e.grid(row=i, column=1, sticky="w", pady=4)
+        e = crear_entry(form_frame)
+        e.grid(row=i, column=1, sticky="ew", pady=4)
         entries[key] = e
 
     crear_label(form_frame, "Puntos:", "bold").grid(row=5, column=0, sticky="w", padx=(0, 10), pady=4)
@@ -172,9 +174,5 @@ def mostrar_ventana_clientes():
     crear_boton(btn_frame, "Limpiar", limpiar_campos, "Secundario").pack(side="right", padx=(0, 10))
 
     cargar_tabla()
-    ventana.update_idletasks()
-    w = ventana.winfo_reqwidth()
-    h = ventana.winfo_reqheight()
-    ventana.geometry(f"{w}x{h}")
     centrar_ventana(ventana)
     ventana.mainloop()

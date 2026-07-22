@@ -196,10 +196,6 @@ def confirmar_compra():
     crear_boton(btn_frame, "Cancelar", cerrar_ventana_confirmacion, "Secundario").pack(side="left")
     crear_boton(btn_frame, "✓ Confirmar", lambda: realizar_compra(ventana_confirmacion), "Exito").pack(side="right")
 
-    ventana_confirmacion.update_idletasks()
-    w = ventana_confirmacion.winfo_reqwidth()
-    h = ventana_confirmacion.winfo_reqheight()
-    ventana_confirmacion.geometry(f"{w}x{h}")
     centrar_ventana(ventana_confirmacion)
 
 def cerrar_ventana_confirmacion():
@@ -380,8 +376,8 @@ def mostrar_ventana_ventas():
     cant_inner = tk.Frame(cant_card, bg=paleta["bg_card"])
     cant_inner.pack(fill="x", padx=15, pady=(0, 16))
 
-    entry_cantidad = crear_entry(cant_inner, width=12, font=("Segoe UI", 16))
-    entry_cantidad.pack(anchor="w")
+    entry_cantidad = crear_entry(cant_inner, font=("Segoe UI", 16))
+    entry_cantidad.pack(fill="x")
     entry_cantidad.bind("<KeyRelease>", calcular_total)
     entry_cantidad.bind("<KeyPress>", solo_numeros)
 
@@ -391,7 +387,7 @@ def mostrar_ventana_ventas():
     cliente_inner.pack(fill="x", padx=15, pady=(0, 16))
     
     crear_label(cliente_inner, "Cédula:", "bold").pack(anchor="w")
-    entrada_cedula = crear_entry(cliente_inner, width=20, font=("Segoe UI", 12))
+    entrada_cedula = crear_entry(cliente_inner, font=("Segoe UI", 12))
     entrada_cedula.pack(fill="x")
 
     total_card = tk.Frame(main_frame, bg=paleta["bg_boton_primario"], bd=0)
@@ -414,10 +410,6 @@ def mostrar_ventana_ventas():
     entry_nombre.bind("<Return>", lambda e: entry_cantidad.focus_set())
     entry_cantidad.bind("<Return>", lambda e: confirmar_compra())
 
-    ventana_ventas.update_idletasks()
-    w = ventana_ventas.winfo_reqwidth()
-    h = ventana_ventas.winfo_reqheight()
-    ventana_ventas.geometry(f"{w}x{h}")
     centrar_ventana(ventana_ventas)
 
     ventana_ventas.mainloop()

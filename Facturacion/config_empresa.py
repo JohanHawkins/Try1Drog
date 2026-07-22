@@ -84,8 +84,10 @@ def mostrar_ventana_config():
     scroll_frame = tk.Frame(canvas, bg=paleta["bg_principal"])
 
     scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-    canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+    scroll_window = canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
+
+    canvas.bind("<Configure>", lambda e: canvas.itemconfigure(scroll_window, width=e.width))
 
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
@@ -94,6 +96,8 @@ def mostrar_ventana_config():
     empresa_card.pack(fill="x", pady=(0, 10))
     empresa_inner = tk.Frame(empresa_card, bg=paleta["bg_card"])
     empresa_inner.pack(fill="x", padx=15, pady=(0, 10))
+
+    empresa_inner.columnconfigure(1, weight=1)
 
     campos_empresa = [
         ("NIT:", "NIT", 0),
@@ -107,8 +111,8 @@ def mostrar_ventana_config():
     entries_empresa = {}
     for texto, key, fila in campos_empresa:
         crear_label(empresa_inner, texto, "bold").grid(row=fila, column=0, sticky="e", padx=(0, 8), pady=5)
-        e = crear_entry(empresa_inner, width=30)
-        e.grid(row=fila, column=1, sticky="w", pady=5)
+        e = crear_entry(empresa_inner)
+        e.grid(row=fila, column=1, sticky="ew", pady=5)
         e.insert(0, config.get(key, CAMPOS_DEFAULT[key]))
         entries_empresa[key] = e
 
@@ -127,6 +131,8 @@ def mostrar_ventana_config():
     dian_inner = tk.Frame(dian_card, bg=paleta["bg_card"])
     dian_inner.pack(fill="x", padx=15, pady=(0, 10))
 
+    dian_inner.columnconfigure(1, weight=1)
+
     campos_dian = [
         ("Rango Desde:", "Rango Desde", 0),
         ("Rango Hasta:", "Rango Hasta", 1),
@@ -139,8 +145,8 @@ def mostrar_ventana_config():
     entries_dian = {}
     for texto, key, fila in campos_dian:
         crear_label(dian_inner, texto, "bold").grid(row=fila, column=0, sticky="e", padx=(0, 8), pady=5)
-        e = crear_entry(dian_inner, width=30)
-        e.grid(row=fila, column=1, sticky="w", pady=5)
+        e = crear_entry(dian_inner)
+        e.grid(row=fila, column=1, sticky="ew", pady=5)
         e.insert(0, config.get(key, CAMPOS_DEFAULT[key]))
         entries_dian[key] = e
 
@@ -166,9 +172,5 @@ def mostrar_ventana_config():
     crear_boton(btn_frame, "← Cerrar", ventana.destroy, "Secundario").pack(side="left")
     crear_boton(btn_frame, "💾 Guardar", guardar, "Exito").pack(side="right")
 
-    ventana.update_idletasks()
-    w = ventana.winfo_reqwidth()
-    h = ventana.winfo_reqheight()
-    ventana.geometry(f"{w}x{h}")
     centrar_ventana(ventana)
     ventana.mainloop()

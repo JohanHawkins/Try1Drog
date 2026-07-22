@@ -79,14 +79,10 @@ def mostrar_ventana_menu():
     ]
 
     for texto, comando in modulos:
-        btn = crear_boton(body, texto, comando, width=30)
+        btn = crear_boton(body, texto, comando)
         btn.configure(pady=12, font=("Segoe UI", 11, "bold"))
-        btn.pack(pady=4)
+        btn.pack(fill="x", padx=40, pady=4)
 
-    ventana_menu.update_idletasks()
-    w = ventana_menu.winfo_reqwidth()
-    h = ventana_menu.winfo_reqheight()
-    ventana_menu.geometry(f"{w}x{h}")
     centrar_ventana(ventana_menu)
 
     ventana_menu.mainloop()

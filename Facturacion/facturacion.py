@@ -285,7 +285,7 @@ def mostrar_ventana_facturacion(ultima_venta=None):
     ventana = tk.Tk()
     ventana.title("Drogs+ - Generar Factura")
     ventana.resizable(True, True)
-    ventana.minsize(500, 450)
+    ventana.minsize(620, 680)
     ventana.configure(bg=paleta["bg_principal"])
 
     icon_path = os.path.join("images", "cruz_azul.ico")
@@ -331,6 +331,9 @@ def mostrar_ventana_facturacion(ultima_venta=None):
     cliente_datos_frame = tk.Frame(cliente_inner, bg=paleta["bg_card"])
     cliente_datos_frame.pack(fill="x", pady=(10, 0))
 
+    for c in range(4):
+        cliente_datos_frame.columnconfigure(c, weight=1)
+
     campos_cliente = [
         ("Tipo Doc:", 0, 0), ("N° Documento:", 0, 2),
         ("Nombre:", 1, 0), ("Dirección:", 1, 2),
@@ -338,8 +341,8 @@ def mostrar_ventana_facturacion(ultima_venta=None):
     entries_cliente = {}
     for texto, fila, col in campos_cliente:
         crear_label(cliente_datos_frame, texto, "bold").grid(row=fila, column=col, sticky="e", padx=(0, 6), pady=4)
-        e = crear_entry(cliente_datos_frame, width=22)
-        e.grid(row=fila, column=col + 1, sticky="w", padx=(0, 10), pady=4)
+        e = crear_entry(cliente_datos_frame)
+        e.grid(row=fila, column=col + 1, sticky="ew", padx=(0, 10), pady=4)
         entries_cliente[texto.replace(":", "").strip()] = e
 
     entries_cliente["Tipo Doc"].insert(0, "13")
@@ -383,7 +386,7 @@ def mostrar_ventana_facturacion(ultima_venta=None):
 
     columnas_item = ["Producto", "Cantidad", "Precio Unit.", "Subtotal"]
     tree_items = crear_treeview(items_inner, columnas_item)
-    tree_items.pack(fill="x", pady=(0, 10))
+    tree_items.pack(fill="both", expand=True, pady=(0, 10))
 
     items_venta = []
 
@@ -534,9 +537,5 @@ def mostrar_ventana_facturacion(ultima_venta=None):
     crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana), "Secundario", "pequeño").pack(side="left")
     crear_boton(btn_frame, "📄 Generar Factura", generar_factura, "Exito", "pequeño").pack(side="right")
 
-    ventana.update_idletasks()
-    w = ventana.winfo_reqwidth()
-    h = ventana.winfo_reqheight()
-    ventana.geometry(f"{w}x{h}")
     centrar_ventana(ventana)
     ventana.mainloop()

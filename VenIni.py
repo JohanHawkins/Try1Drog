@@ -60,10 +60,6 @@ def mostrar_ventana():
 
     campo_serial.bind("<Return>", lambda e: acceder(campo_serial.get(), ventana))
 
-    ventana.update_idletasks()
-    w = ventana.winfo_reqwidth()
-    h = ventana.winfo_reqheight()
-    ventana.geometry(f"{w}x{h}")
     centrar_ventana(ventana)
 
     ventana.mainloop()

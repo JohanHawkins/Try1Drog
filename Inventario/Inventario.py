@@ -234,8 +234,8 @@ def eliminar_producto():
     search_inner = tk.Frame(search_card, bg=paleta["bg_card"])
     search_inner.pack(fill="x", padx=15, pady=(0, 10))
 
-    entry_buscar = crear_entry(search_inner, width=35)
-    entry_buscar.pack(side="left", padx=(0, 10))
+    entry_buscar = crear_entry(search_inner)
+    entry_buscar.pack(side="left", fill="x", expand=True, padx=(0, 10))
     entry_buscar.focus_set()
 
     columnas = ["Nombre Producto", "Cantidad Producto", "Precio Producto (COP)", "Categoria"]
@@ -279,10 +279,6 @@ def eliminar_producto():
     crear_boton(btn_frame, "🗑 Eliminar", eliminar_seleccion, "Peligro", "pequeño").pack(side="right")
 
     cargar_productos()
-    ventana_eliminar.update_idletasks()
-    w = ventana_eliminar.winfo_reqwidth()
-    h = ventana_eliminar.winfo_reqheight()
-    ventana_eliminar.geometry(f"{w}x{h}")
     centrar_ventana(ventana_eliminar)
 
 def mostrar_ventana_inventario():
@@ -313,6 +309,9 @@ def mostrar_ventana_inventario():
     prod_inner = tk.Frame(prod_card, bg=paleta["bg_card"])
     prod_inner.pack(fill="x", padx=15, pady=(0, 16))
 
+    for c in range(4):
+        prod_inner.columnconfigure(c, weight=1)
+
     vcmd_entero = (ventana_inventario.register(solo_enteros), '%S')
     vcmd_real = (ventana_inventario.register(solo_reales), '%S', '%P')
 
@@ -325,35 +324,38 @@ def mostrar_ventana_inventario():
         crear_label(prod_inner, texto, "bold").grid(row=fila, column=col, sticky="e", padx=(0, 6), pady=6)
 
     global entry_nombre
-    entry_nombre = crear_entry(prod_inner, width=22)
-    entry_nombre.grid(row=0, column=1, sticky="w", padx=(0, 15), pady=6)
+    entry_nombre = crear_entry(prod_inner)
+    entry_nombre.grid(row=0, column=1, sticky="ew", padx=(0, 15), pady=6)
     entry_nombre.bind("<KeyRelease>", lambda e: mostrar_codigo_producto())
 
     global entry_identificador
-    entry_identificador = crear_entry(prod_inner, width=12, state="readonly")
-    entry_identificador.grid(row=0, column=3, sticky="w", pady=6)
+    entry_identificador = crear_entry(prod_inner, state="readonly")
+    entry_identificador.grid(row=0, column=3, sticky="ew", pady=6)
 
     global entry_cantidad
-    entry_cantidad = crear_entry(prod_inner, width=10, validate="key", validatecommand=vcmd_entero)
-    entry_cantidad.grid(row=1, column=1, sticky="w", padx=(0, 15), pady=6)
+    entry_cantidad = crear_entry(prod_inner, validate="key", validatecommand=vcmd_entero)
+    entry_cantidad.grid(row=1, column=1, sticky="ew", padx=(0, 15), pady=6)
 
     global entry_stock_minimo
-    entry_stock_minimo = crear_entry(prod_inner, width=10, validate="key", validatecommand=vcmd_entero)
-    entry_stock_minimo.grid(row=1, column=3, sticky="w", pady=6)
+    entry_stock_minimo = crear_entry(prod_inner, validate="key", validatecommand=vcmd_entero)
+    entry_stock_minimo.grid(row=1, column=3, sticky="ew", pady=6)
 
     global entry_precio
-    entry_precio = crear_entry(prod_inner, width=15, validate="key", validatecommand=vcmd_real)
-    entry_precio.grid(row=2, column=1, sticky="w", padx=(0, 15), pady=6)
+    entry_precio = crear_entry(prod_inner, validate="key", validatecommand=vcmd_real)
+    entry_precio.grid(row=2, column=1, sticky="ew", padx=(0, 15), pady=6)
 
     global entry_unidad
-    entry_unidad = crear_entry(prod_inner, width=12)
-    entry_unidad.grid(row=2, column=3, sticky="w", pady=6)
+    entry_unidad = crear_entry(prod_inner)
+    entry_unidad.grid(row=2, column=3, sticky="ew", pady=6)
     entry_unidad.insert(0, "Unidad")
 
     fechas_card = crear_card(main_frame, "Fechas y Categoría")
     fechas_card.pack(fill="x", pady=(0, 14))
     fechas_inner = tk.Frame(fechas_card, bg=paleta["bg_card"])
     fechas_inner.pack(fill="x", padx=15, pady=(0, 16))
+
+    for c in range(4):
+        fechas_inner.columnconfigure(c, weight=1)
 
     crear_label(fechas_inner, "Fecha Entrega:", "bold").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=6)
     global date_entry_entrega
@@ -409,9 +411,5 @@ def mostrar_ventana_inventario():
     crear_boton(btn_frame, "💾 Guardar", guardar_datos, "Exito", "pequeño").pack(side="right")
 
     entry_nombre.focus_set()
-    ventana_inventario.update_idletasks()
-    w = ventana_inventario.winfo_reqwidth()
-    h = ventana_inventario.winfo_reqheight()
-    ventana_inventario.geometry(f"{w}x{h}")
     centrar_ventana(ventana_inventario)
     ventana_inventario.mainloop()

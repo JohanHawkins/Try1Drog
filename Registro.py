@@ -172,21 +172,24 @@ def mostrar_ventana_registro():
     filtros_inner = tk.Frame(filtros_card, bg=paleta["bg_card"])
     filtros_inner.pack(fill="x", padx=15, pady=(0, 14))
 
+    for c in range(9):
+        filtros_inner.columnconfigure(c, weight=1)
+
     crear_label(filtros_inner, "Producto:", "bold").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=6)
-    entrada_nombre = crear_entry(filtros_inner, width=15)
-    entrada_nombre.grid(row=0, column=1, padx=(0, 10), pady=6)
+    entrada_nombre = crear_entry(filtros_inner)
+    entrada_nombre.grid(row=0, column=1, padx=(0, 10), pady=6, sticky="ew")
 
     crear_label(filtros_inner, "Fecha:", "bold").grid(row=0, column=2, sticky="e", padx=(0, 6), pady=6)
-    entrada_fecha = crear_entry(filtros_inner, width=10)
-    entrada_fecha.grid(row=0, column=3, padx=(0, 10), pady=6)
+    entrada_fecha = crear_entry(filtros_inner)
+    entrada_fecha.grid(row=0, column=3, padx=(0, 10), pady=6, sticky="ew")
 
     crear_label(filtros_inner, "Hora:", "bold").grid(row=0, column=4, sticky="e", padx=(0, 6), pady=6)
-    entrada_hora = crear_entry(filtros_inner, width=8)
-    entrada_hora.grid(row=0, column=5, padx=(0, 10), pady=6)
+    entrada_hora = crear_entry(filtros_inner)
+    entrada_hora.grid(row=0, column=5, padx=(0, 10), pady=6, sticky="ew")
 
     crear_label(filtros_inner, "Método:", "bold").grid(row=0, column=6, sticky="e", padx=(0, 6), pady=6)
-    entrada_metodo = crear_entry(filtros_inner, width=10)
-    entrada_metodo.grid(row=0, column=7, padx=(0, 10), pady=6)
+    entrada_metodo = crear_entry(filtros_inner)
+    entrada_metodo.grid(row=0, column=7, padx=(0, 10), pady=6, sticky="ew")
 
     crear_boton(filtros_inner, "🔍 Buscar", filtrar_datos, "Primario", "pequeño").grid(row=0, column=8, pady=6)
 
@@ -218,9 +221,5 @@ def mostrar_ventana_registro():
     crear_boton(btn_frame, "📥 Exportar", guardar_registros, "Exito", "pequeño").pack(side="right")
 
     cargar_pagina()
-    ventana_registro.update_idletasks()
-    w = ventana_registro.winfo_reqwidth()
-    h = ventana_registro.winfo_reqheight()
-    ventana_registro.geometry(f"{w}x{h}")
     centrar_ventana(ventana_registro)
     ventana_registro.mainloop()

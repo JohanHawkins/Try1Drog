@@ -182,13 +182,14 @@ def crear_alerta(parent, tipo, texto, paleta=None):
              fg=color_texto, bg=color_fondo, anchor="w").pack(fill="x", padx=10, pady=8)
     return frame
 
-def crear_treeview(parent, columns, paleta=None):
+def crear_treeview(parent, columns, paleta=None, widths=None):
     if paleta is None:
         paleta = get_paleta()
     tree = ttk.Treeview(parent, columns=columns, show="headings", style="Treeview")
-    for col in columns:
+    for i, col in enumerate(columns):
         tree.heading(col, text=col)
-        tree.column(col, width=120)
+        w = widths[i] if widths and i < len(widths) else 120
+        tree.column(col, width=w, minwidth=60, stretch=True)
     tree.tag_configure("evenrow", background=paleta["bg_tabla_fila_par"])
     tree.tag_configure("oddrow", background=paleta["bg_tabla_fila_impar"])
     return tree

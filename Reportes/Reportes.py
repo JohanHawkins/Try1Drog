@@ -150,10 +150,6 @@ def mostrar_ventana_reportes():
 
     crear_boton(btn_frame, "← Volver", lambda: volver_al_menu(ventana), "Secundario").pack(side="left")
 
-    ventana.update_idletasks()
-    w = ventana.winfo_reqwidth()
-    h = ventana.winfo_reqheight()
-    ventana.geometry(f"{w}x{h}")
     centrar_ventana(ventana)
 
     ventana.mainloop()
